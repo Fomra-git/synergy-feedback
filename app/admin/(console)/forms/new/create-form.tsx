@@ -41,7 +41,8 @@ export function CreateFormForm({ branches }: { branches: { id: string; name: str
 
   const onSubmit = (values: Values) =>
     start(async () => {
-      const res = await createFormAction({ ...values, status: "draft" });
+      // An auto-filled slug is only a suggestion: let the server make it unique.
+      const res = await createFormAction({ ...values, slug: slugTouched ? values.slug : "", status: "draft" });
       if (res.ok) {
         toast.success("Form created");
         router.push(`/admin/forms/${res.data.id}/builder`);

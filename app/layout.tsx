@@ -25,7 +25,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" className={`${inter.variable} ${lora.variable} ${nunito.variable}`}>
       <body className="min-h-dvh font-sans">
         {children}
-        <Toaster position="top-right" richColors closeButton />
+        <Toaster position="bottom-right" richColors closeButton />
       </body>
     </html>
   );

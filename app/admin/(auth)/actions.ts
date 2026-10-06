@@ -13,6 +13,8 @@ import { safeAdminPath } from "@/lib/auth/form-access";
 export interface AuthState {
   error?: string;
   success?: string;
+  /** Echoed back so the field survives React's post-action form reset. */
+  email?: string;
 }
 
 const loginSchema = z.object({
@@ -23,7 +25,8 @@ const loginSchema = z.object({
 
 export async function signInAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const parsed = loginSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const typedEmail = String(formData.get("email") ?? "").slice(0, 254);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input", email: typedEmail };
 
   const ipHash = hashIp(getClientIp(await headers()));
   const email = parsed.data.email.toLowerCase();
@@ -31,16 +34,16 @@ export async function signInAction(_prev: AuthState, formData: FormData): Promis
     checkRateLimit(`login:ip:${ipHash}`, 20, 900),
     checkRateLimit(`login:email:${email}`, 8, 900),
   ]);
-  if (!ipOk || !emailOk) return { error: "Too many sign-in attempts. Please wait 15 minutes and try again." };
+  if (!ipOk || !emailOk) return { error: "Too many sign-in attempts. Please wait 15 minutes and try again.", email };
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: parsed.data.password });
-  if (error || !data.user) return { error: "Invalid email or password." };
+  if (error || !data.user) return { error: "Invalid email or password.", email };
 
   const { data: profile } = await supabase.from("profiles").select("role, is_active").eq("id", data.user.id).maybeSingle();
   if (!profile?.is_active || (profile.role !== "admin" && profile.role !== "super_admin")) {
     await supabase.auth.signOut();
-    return { error: "Your account is not yet activated. Please contact a super admin." };
+    return { error: "Your account is not yet activated. Please contact a super admin.", email };
   }
 
   redirect(safeAdminPath(parsed.data.next, "/admin/dashboard"));

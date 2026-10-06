@@ -24,7 +24,7 @@ export function LoginForm({ next, initialError }: { next?: string; initialError?
           <input type="hidden" name="next" value={next ?? ""} />
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" autoComplete="email" required autoFocus placeholder="you@synergywellness.com" />
+            <Input id="email" name="email" type="email" autoComplete="email" required autoFocus placeholder="you@synergywellness.com" defaultValue={state.email} key={state.email} />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">

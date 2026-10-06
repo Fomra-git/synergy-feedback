@@ -77,7 +77,21 @@ function SortableField({
         </div>
       </div>
       {/* Clicking anywhere on the preview selects the field; the preview itself is inert. */}
-      <button type="button" onClick={onSelect} className="block w-full cursor-pointer px-4 pt-2 pb-4 text-left" aria-label={`Edit ${label}`} aria-pressed={selected}>
+      {/* div (not <button>): the inert preview contains form controls, which can't nest in a button. */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onSelect}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelect();
+          }
+        }}
+        className="block w-full cursor-pointer rounded-b-xl px-4 pt-2 pb-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label={`Edit ${label}`}
+        aria-pressed={selected}
+      >
         <div inert className="pointer-events-none">
           {field.type === "section" ? (
             <div>
@@ -89,7 +103,7 @@ function SortableField({
             <FieldInput field={{ ...field, label: field.label || (isInputType(field.type) ? "Untitled question" : field.label) }} value={undefined} onChange={() => undefined} uploadUrl={null} />
           )}
         </div>
-      </button>
+      </div>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { rowToField } from "@/services/forms/mappers";
 import type { FormFieldRow, SheetConnectionRow, SyncLogRow } from "@/types/db";
 import type { FormSheetSettings } from "@/types/forms";
 import { syncJobs, type SyncDeps, type SyncSummary } from "./engine";
-import { getSheetsClient } from "./tokens";
+import { getSheetsClient, markAccountReauthRequired } from "./tokens";
 
 export function supabaseSyncDeps(): SyncDeps {
   const db = createAdminClient();
@@ -48,6 +48,7 @@ export function supabaseSyncDeps(): SyncDeps {
       const { error } = await db.from("google_sheet_connections").update(patch).eq("id", id);
       if (error) logError("sheets.update_connection_failed", error, { id });
     },
+    markAccountReauth: (accountId, reason) => markAccountReauthRequired(accountId, reason),
     async updateLog(id, patch) {
       const { error } = await db.from("google_sheet_sync_logs").update(patch).eq("id", id);
       if (error) logError("sheets.update_log_failed", error, { id });

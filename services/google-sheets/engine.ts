@@ -56,6 +56,8 @@ export interface SyncDeps {
   getSubmissions(ids: string[]): Promise<SubmissionForSync[]>;
   updateConnection(id: string, patch: Partial<SheetConnectionRow>): Promise<void>;
   updateLog(id: string, patch: Partial<SyncLogRow>): Promise<void>;
+  /** Called when Google rejects the account's credentials (revoked/expired). */
+  markAccountReauth?(accountId: string, reason: string): Promise<void>;
   now?: () => Date;
 }
 
@@ -221,6 +223,7 @@ export async function syncJobs(jobs: SyncLogRow[], deps: SyncDeps): Promise<Sync
         await deps.updateConnection(conn.id, { status: "error", last_error: message });
       } else if (gErr?.kind === "auth") {
         await deps.updateConnection(conn.id, { status: "reauth_required", last_error: message });
+        await deps.markAccountReauth?.(conn.google_account_id, gErr.message);
       } else {
         await deps.updateConnection(conn.id, { last_error: message });
       }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -46,6 +46,8 @@ export function FormBuilder({
   publicUrl: string;
 }) {
   const router = useRouter();
+  // Stable id keeps dnd-kit's generated aria ids identical on server and client (no hydration mismatch).
+  const dndId = useId();
   const history = useHistory<FormField[]>(initialFields);
   const fields = history.value;
   const [selectedId, setSelectedId] = useState<string | null>(initialFields[0]?.field_id ?? null);
@@ -234,7 +236,7 @@ export function FormBuilder({
   }[saveState];
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDragType(null)}>
+    <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDragType(null)}>
       <div className="flex h-dvh flex-col bg-background">
         {/* Top bar */}
         <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-card px-3 sm:px-4">

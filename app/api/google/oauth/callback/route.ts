@@ -94,8 +94,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Re-authorisation: restore every form that uses this account and retry
-    // the syncs that were waiting for it.
-    if (existing && existing.status !== "connected") {
+    // the syncs that were waiting for it. (Done on every re-consent: a
+    // connection can be flagged even while the account row looks healthy.)
+    if (existing) {
       await db
         .from("google_sheet_connections")
         .update({ status: "connected", last_error: null })
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
         .eq("status", "reauth_required")
         .is("spreadsheet_id", null);
       await requeueJobs({ accountId });
-      await logAudit({
+      if (existing.status !== "connected") await logAudit({
         userId: session.userId,
         action: "google_sheet.reauthorized",
         entityType: "google_account",
