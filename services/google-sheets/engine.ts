@@ -1,5 +1,5 @@
 import { describeGoogleError, GoogleApiError } from "@/lib/google/errors";
-import { a1Sheet, columnLetter } from "@/lib/google/sheets-api";
+import { a1Sheet, columnLetter } from "@/lib/google/a1";
 import type { FormField, FormSheetSettings } from "@/types/forms";
 import type { SheetColumn, SheetConnectionRow, SyncLogRow } from "@/types/db";
 import { buildRow, headersHash, headersOf, reconcileColumns, SUBMISSION_ID_KEY } from "./columns";
