@@ -134,7 +134,7 @@ submit ─▶ create_submission (tx: submission + answers + sync_log[pending])
        ─▶ HTTP 200 to patient
        └▶ after(): runSyncBatch([log]) ─▶ Sheets append ─▶ log synced (row #)
                                        └▶ failure ─▶ log failed + next_attempt_at
-cron (*/5) / piggy-back after submissions / admin "Retry Sync"
+cron (daily on Hobby, or pg_cron every 5 min) / piggy-back after submissions / admin "Retry Sync"
        ─▶ claim_sync_jobs (SKIP LOCKED) ─▶ engine.syncJobs
 ```
 * Backoff: 1 m, 5 m, 15 m, 1 h, 3 h, 6 h, 12 h; stops after 8 attempts.

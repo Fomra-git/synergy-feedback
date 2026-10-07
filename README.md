@@ -152,8 +152,10 @@ with Google.
 Failed syncs are retried by `GET /api/cron/google-sheets-sync`, which requires the header
 `Authorization: Bearer $CRON_SECRET`.
 
-- **Vercel:** `vercel.json` schedules it every 5 minutes, and Vercel sends `CRON_SECRET` automatically.
-  The Hobby plan only allows daily crons. Use Pro, or the Supabase option below.
+- **Vercel:** `vercel.json` schedules it once a day (21:30 UTC = 03:00 IST), which is the most the
+  Hobby plan allows. Vercel sends `CRON_SECRET` automatically. On the Pro plan you can change the
+  schedule to `*/5 * * * *`.
+- **More frequent retries on Hobby:** use the Supabase pg_cron option below.
 - **Supabase pg_cron alternative:**
   ```sql
   select cron.schedule('sheets-sync', '*/5 * * * *', $$
