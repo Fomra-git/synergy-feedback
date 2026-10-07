@@ -66,6 +66,7 @@ export const fieldSchema = z.object({
       accept: z.array(z.enum(["image", "pdf", "document"])).optional(),
       level: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
       width: z.enum(["full", "half"]).optional(),
+      optionsLayout: z.enum(["vertical", "horizontal"]).optional(),
       prefillParam: z
         .string()
         .regex(/^[a-zA-Z0-9_-]{0,40}$/)
@@ -120,6 +121,7 @@ export const formDetailsSchema = z.object({
 export const publicSettingsSchema = z.object({
   appearance: z
     .object({
+      useGlobal: z.boolean().optional(),
       primaryColor: hexColor.optional(),
       backgroundColor: hexColor.optional(),
       buttonColor: hexColor.optional(),

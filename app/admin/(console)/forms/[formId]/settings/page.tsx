@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getFormForAdmin } from "@/services/forms/admin";
 import { getColumnPreview } from "@/services/google-sheets/connections";
 import { createClient } from "@/lib/supabase/server";
+import { getAppSettings } from "@/services/settings";
 import { env, isGoogleConfigured } from "@/lib/env";
 import { FormSettingsTabs } from "./settings-tabs";
 import type { SyncStatus } from "@/types/db";
@@ -18,6 +19,7 @@ export default async function FormSettingsPage(props: PageProps<"/admin/forms/[f
   if (!data) notFound();
 
   const supabase = await createClient();
+  const appSettings = await getAppSettings();
   const [{ data: accounts }, { data: logs }, columns] = await Promise.all([
     supabase.rpc("list_google_accounts"),
     supabase.from("google_sheet_sync_logs").select("status").eq("form_id", formId),
@@ -33,7 +35,8 @@ export default async function FormSettingsPage(props: PageProps<"/admin/forms/[f
     <FormSettingsTabs
       initialTab={tab}
       googleNotice={typeof sp.google === "string" ? sp.google : null}
-      form={{ id: data.form.id, name: data.form.name, slug: data.form.slug, settings: data.form.settings ?? {} }}
+      form={{ id: data.form.id, name: data.form.name, slug: data.form.slug, description: data.form.description, settings: data.form.settings ?? {} }}
+      globalAppearance={appSettings.branding.formDefaults}
       privateSettings={{
         submission: { allowSubmissions: true, duplicateProtection: true, ...(data.settings?.submission ?? {}) },
         notifications: { enabled: true, recipients: [], includeAnswers: false, ...(data.settings?.notifications ?? {}) },

@@ -9,6 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import { readableTextColor } from "@/lib/utils";
 import type { AppSettings } from "@/schemas/settings";
 import { saveAppSettingsAction, uploadLogoAction } from "./actions";
 
@@ -29,6 +32,9 @@ export function AppSettingsForm({ initial, canEdit }: { initial: AppSettings; ca
   const [pending, start] = useTransition();
   const [uploading, setUploading] = useState(false);
   const dis = !canEdit;
+  const fd = s.branding.formDefaults;
+  const setFd = (patch: Partial<typeof fd>) =>
+    setS((prev) => ({ ...prev, branding: { ...prev.branding, formDefaults: { ...prev.branding.formDefaults, ...patch } } }));
 
   const save = () =>
     start(async () => {
@@ -111,6 +117,57 @@ export function AppSettingsForm({ initial, canEdit }: { initial: AppSettings; ca
                 </div>
               </F>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Global form appearance</CardTitle>
+          <CardDescription>
+            Used by every form that has <strong>Apply global settings</strong> turned on (Form → Settings → Appearance). Turn it off on a form to customise that form separately.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-3">
+            {([
+              ["primaryColor", "Primary color"],
+              ["backgroundColor", "Background"],
+              ["buttonColor", "Button color"],
+            ] as const).map(([k, label]) => (
+              <F key={k} id={`fd-${k}`} label={label}>
+                <div className="flex gap-2">
+                  <input type="color" aria-label={`${label} picker`} disabled={dis} value={fd[k]} onChange={(e) => setFd({ [k]: e.target.value })} className="h-10 w-12 rounded-md border p-1" />
+                  <Input id={`fd-${k}`} disabled={dis} className="font-mono" maxLength={7} value={fd[k]} onChange={(e) => setFd({ [k]: e.target.value })} />
+                </div>
+              </F>
+            ))}
+          </div>
+          <F id="fd-font" label="Font">
+            <NativeSelect id="fd-font" disabled={dis} value={fd.font} onChange={(e) => setFd({ font: e.target.value as typeof fd.font })}>
+              <option value="inter">Inter (modern)</option>
+              <option value="rounded">Nunito (friendly)</option>
+              <option value="serif">Lora (classic)</option>
+              <option value="system">System default</option>
+            </NativeSelect>
+          </F>
+          <F id="fd-title" label="Form title (optional)" hint="If set, replaces each form's own title. Leave empty to keep each form's name.">
+            <Input id="fd-title" disabled={dis} maxLength={150} value={fd.title} placeholder="e.g. Synergy Wellness Feedback" onChange={(e) => setFd({ title: e.target.value })} />
+          </F>
+          <F id="fd-desc" label="Form description (optional)" hint="If set, replaces each form's own description.">
+            <Textarea id="fd-desc" disabled={dis} rows={3} maxLength={2000} value={fd.description} placeholder="e.g. Your feedback helps us improve our physiotherapy services." onChange={(e) => setFd({ description: e.target.value })} />
+          </F>
+          <div className="rounded-xl border p-5" style={{ background: fd.backgroundColor }}>
+            <div className="mx-auto max-w-sm overflow-hidden rounded-lg bg-white shadow-sm">
+              <div className="h-1.5" style={{ background: fd.primaryColor }} />
+              <div className="p-5">
+                <p className="font-semibold">{fd.title || "Form name"}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{fd.description || "Form description"}</p>
+                <div className="mt-3 h-9 rounded-md border" />
+                <div className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold" style={{ background: fd.buttonColor, color: readableTextColor(fd.buttonColor) }}>
+                  Submit
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Bell, Inbox, Loader2, Paintbrush, Plug, Save, Settings2, Sparkles, Upload, X } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +14,8 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GoogleSheetsPanel, type GoogleSheetsPanelProps } from "@/components/google-sheets/google-sheets-panel";
+import type { GlobalFormDefaults } from "@/schemas/settings";
+import { readableTextColor } from "@/lib/utils";
 import type { FormNotificationSettings, FormPublicSettings, FormSheetSettings, FormSubmissionSettings } from "@/types/forms";
 import { savePrivateSettingsAction, savePublicSettingsAction } from "../../actions";
 import { uploadLogoAction } from "../../../settings/actions";
@@ -67,12 +70,14 @@ export function FormSettingsTabs({
   initialTab,
   googleNotice,
   form,
+  globalAppearance,
   privateSettings,
   google,
 }: {
   initialTab: string;
   googleNotice: string | null;
-  form: { id: string; name: string; slug: string; settings: FormPublicSettings };
+  form: { id: string; name: string; slug: string; description: string | null; settings: FormPublicSettings };
+  globalAppearance: GlobalFormDefaults;
   privateSettings: PrivateSettings;
   google: Omit<GoogleSheetsPanelProps, "formId" | "formName" | "notice">;
 }) {
@@ -89,6 +94,14 @@ export function FormSettingsTabs({
   const [recipientDraft, setRecipientDraft] = useState("");
   const [uploading, setUploading] = useState(false);
 
+  const useGlobal = Boolean(pub.appearance.useGlobal);
+  const preview = useGlobal
+    ? {
+        ...globalAppearance,
+        title: globalAppearance.title || form.name,
+        description: globalAppearance.description || form.description,
+      }
+    : { ...pub.appearance, title: form.name, description: form.description };
   const setA = (p: Partial<typeof pub.appearance>) => setPub((s) => ({ ...s, appearance: { ...s.appearance, ...p } }));
   const setB = (p: Partial<typeof pub.behavior>) => setPub((s) => ({ ...s, behavior: { ...s.behavior, ...p } }));
   const setSeo = (p: Partial<typeof pub.seo>) => setPub((s) => ({ ...s, seo: { ...s.seo, ...p } }));
@@ -325,25 +338,67 @@ export function FormSettingsTabs({
             <CardDescription>Brand the public form.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <ColorInput id="c-primary" label="Primary color" value={pub.appearance.primaryColor ?? "#0f766e"} onChange={(v) => setA({ primaryColor: v })} />
-              <ColorInput id="c-bg" label="Background" value={pub.appearance.backgroundColor ?? "#f0fdfa"} onChange={(v) => setA({ backgroundColor: v })} />
-              <ColorInput id="c-btn" label="Button color" value={pub.appearance.buttonColor ?? "#0f766e"} onChange={(v) => setA({ buttonColor: v })} />
-            </div>
-            <Field label="Font" htmlFor="font">
-              <NativeSelect id="font" value={pub.appearance.font ?? "inter"} onChange={(e) => setA({ font: e.target.value as "inter" })}>
-                <option value="inter">Inter (modern)</option>
-                <option value="rounded">Nunito (friendly)</option>
-                <option value="serif">Lora (classic)</option>
-                <option value="system">System default</option>
-              </NativeSelect>
-            </Field>
-            <div className="rounded-xl border p-6" style={{ background: pub.appearance.backgroundColor }}>
+            <Toggle
+              id="use-global"
+              label="Apply global settings"
+              hint="Use the colours, font, title and description from Admin → Settings → Global form appearance. Turn off to customise this form separately."
+              checked={useGlobal}
+              onChange={(v) => setA({ useGlobal: v })}
+            />
+            {useGlobal ? (
+              <div className="rounded-lg border bg-muted/40 p-4 text-sm">
+                <p className="font-medium">Using global appearance</p>
+                <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                  {([
+                    ["Primary", globalAppearance.primaryColor],
+                    ["Background", globalAppearance.backgroundColor],
+                    ["Button", globalAppearance.buttonColor],
+                  ] as const).map(([label, color]) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <span className="size-4 rounded border" style={{ background: color }} aria-hidden />
+                      <dt className="text-muted-foreground">{label}</dt>
+                      <dd className="font-mono text-xs">{color}</dd>
+                    </div>
+                  ))}
+                  <div className="flex gap-2">
+                    <dt className="text-muted-foreground">Font</dt>
+                    <dd className="capitalize">{globalAppearance.font}</dd>
+                  </div>
+                </dl>
+                <p className="mt-3 text-muted-foreground">
+                  Title: <span className="text-foreground">{globalAppearance.title || `${form.name} (this form's own name)`}</span>
+                  <br />
+                  Description: <span className="text-foreground">{globalAppearance.description || "this form's own description"}</span>
+                </p>
+                <Link href="/admin/settings" className="mt-3 inline-block font-medium text-primary hover:underline">
+                  Edit global appearance →
+                </Link>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <ColorInput id="c-primary" label="Primary color" value={pub.appearance.primaryColor ?? "#0f766e"} onChange={(v) => setA({ primaryColor: v })} />
+                  <ColorInput id="c-bg" label="Background" value={pub.appearance.backgroundColor ?? "#f0fdfa"} onChange={(v) => setA({ backgroundColor: v })} />
+                  <ColorInput id="c-btn" label="Button color" value={pub.appearance.buttonColor ?? "#0f766e"} onChange={(v) => setA({ buttonColor: v })} />
+                </div>
+                <Field label="Font" htmlFor="font">
+                  <NativeSelect id="font" value={pub.appearance.font ?? "inter"} onChange={(e) => setA({ font: e.target.value as "inter" })}>
+                    <option value="inter">Inter (modern)</option>
+                    <option value="rounded">Nunito (friendly)</option>
+                    <option value="serif">Lora (classic)</option>
+                    <option value="system">System default</option>
+                  </NativeSelect>
+                </Field>
+                <p className="text-sm text-muted-foreground">This form shows its own name and description (edit them on the Overview tab).</p>
+              </>
+            )}
+            <div className="rounded-xl border p-6" style={{ background: preview.backgroundColor }}>
               <div className="mx-auto max-w-sm rounded-lg bg-white p-5 shadow-sm">
-                <div className="mb-3 h-1.5 rounded" style={{ background: pub.appearance.primaryColor }} />
-                <p className="font-semibold">{form.name}</p>
+                <div className="mb-3 h-1.5 rounded" style={{ background: preview.primaryColor }} />
+                <p className="font-semibold">{preview.title}</p>
+                {preview.description && <p className="mt-1 text-sm text-muted-foreground">{preview.description}</p>}
                 <div className="mt-3 h-9 rounded-md border" />
-                <div className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold text-white" style={{ background: pub.appearance.buttonColor }}>
+                <div className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold" style={{ background: preview.buttonColor, color: readableTextColor(preview.buttonColor ?? "#0f766e") }}>
                   {pub.behavior.submitButtonText || "Submit"}
                 </div>
               </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GripVertical, Plus, Settings2, X } from "lucide-react";
+import { Columns3, GripVertical, Plus, Rows3, Settings2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -184,6 +184,29 @@ export function PropertiesPanel({
                 <Row>
                   <Label>Options</Label>
                   <OptionsEditor options={s.options ?? []} onChange={(options) => setS({ options })} />
+                </Row>
+              )}
+              {(field.type === "radio" || field.type === "checkbox") && (
+                <Row>
+                  <Label>Options layout</Label>
+                  <div role="radiogroup" aria-label="Options layout" className="grid grid-cols-2 gap-2">
+                    {(["vertical", "horizontal"] as const).map((l) => {
+                      const active = (s.optionsLayout ?? "vertical") === l;
+                      return (
+                        <button
+                          key={l}
+                          type="button"
+                          role="radio"
+                          aria-checked={active}
+                          onClick={() => setS({ optionsLayout: l })}
+                          className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm capitalize transition ${active ? "border-primary bg-accent font-medium text-accent-foreground" : "hover:bg-muted"}`}
+                        >
+                          {l === "vertical" ? <Rows3 className="size-4" aria-hidden /> : <Columns3 className="size-4" aria-hidden />}
+                          {l}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </Row>
               )}
               {(field.type === "rating" || field.type === "star_rating") && (

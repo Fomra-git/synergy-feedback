@@ -18,6 +18,17 @@ export const appSettingsSchema = z.object({
     primaryColor: hexColor,
     secondaryColor: hexColor,
     logoUrl: url,
+    /** Global form appearance, used by every form with "Apply global settings" on. */
+    formDefaults: z.object({
+      primaryColor: hexColor,
+      backgroundColor: hexColor,
+      buttonColor: hexColor,
+      font: z.enum(["inter", "serif", "rounded", "system"]),
+      /** Optional: replaces each form's own title when set. */
+      title: z.string().trim().max(150),
+      /** Optional: replaces each form's own description when set. */
+      description: z.string().trim().max(2000),
+    }),
   }),
   email: z.object({
     senderName: z.string().trim().max(80),
@@ -33,10 +44,23 @@ export const appSettingsSchema = z.object({
 });
 
 export type AppSettings = z.infer<typeof appSettingsSchema>;
+export type GlobalFormDefaults = AppSettings["branding"]["formDefaults"];
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   organization: { name: "Synergy Wellness", email: "", website: "", logoUrl: "" },
-  branding: { primaryColor: "#0f766e", secondaryColor: "#f59e0b", logoUrl: "" },
+  branding: {
+    primaryColor: "#0f766e",
+    secondaryColor: "#f59e0b",
+    logoUrl: "",
+    formDefaults: {
+      primaryColor: "#0f766e",
+      backgroundColor: "#f0fdfa",
+      buttonColor: "#0f766e",
+      font: "inter",
+      title: "",
+      description: "",
+    },
+  },
   email: { senderName: "Synergy Feedback", senderEmail: "", defaultRecipients: [] },
   security: { captchaEnabled: false, submissionRateLimitPerMinute: 10, submissionRateLimitPerHour: 60 },
   timezone: "Asia/Kolkata",

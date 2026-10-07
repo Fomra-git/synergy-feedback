@@ -49,6 +49,8 @@ export interface FieldSettings {
   level?: 1 | 2 | 3;
   /** layout width on desktop */
   width?: "full" | "half";
+  /** radio / checkbox: stack options vertically (default) or place them side by side */
+  optionsLayout?: "vertical" | "horizontal";
   /** pre-fill from a URL query parameter (e.g. ?branch=porur) */
   prefillParam?: string;
 }
@@ -97,6 +99,8 @@ export interface FormField {
 }
 
 export interface FormAppearance {
+  /** true: use the global form appearance from Settings instead of the values below */
+  useGlobal?: boolean;
   primaryColor?: string;
   backgroundColor?: string;
   buttonColor?: string;

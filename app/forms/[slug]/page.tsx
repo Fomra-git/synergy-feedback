@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { DynamicFormRenderer } from "@/components/public-form/dynamic-form-renderer";
 import { getPublishedForm, toClientForm } from "@/services/forms/public";
 import { getAppSettings } from "@/services/settings";
+import { resolveFormPresentation } from "@/lib/forms/appearance";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { env, isCaptchaConfigured } from "@/lib/env";
 import type { FormSubmissionSettings } from "@/types/forms";
@@ -48,14 +49,22 @@ export default async function PublicFormPage(props: PageProps<"/forms/[slug]">) 
 
   const captcha = settings.security.captchaEnabled && isCaptchaConfigured() ? env.turnstileSiteKey() : null;
 
+  const look = resolveFormPresentation(form, settings.branding.formDefaults);
+  const clientForm = toClientForm(form);
+
   return (
     <DynamicFormRenderer
-      form={toClientForm(form)}
+      form={{
+        ...clientForm,
+        name: look.title,
+        description: look.description,
+        settings: { ...clientForm.settings, appearance: look.appearance },
+      }}
       prefill={prefill}
       captchaSiteKey={captcha}
       closedMessage={closed}
       orgName={settings.organization.name}
-      logoUrl={form.settings.appearance?.logoUrl || settings.branding.logoUrl || settings.organization.logoUrl || null}
+      logoUrl={(look.appearance.useGlobal ? "" : form.settings.appearance?.logoUrl) || settings.branding.logoUrl || settings.organization.logoUrl || null}
     />
   );
 }

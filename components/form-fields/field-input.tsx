@@ -13,6 +13,13 @@ const inputBase =
 const optionBase =
   "flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border bg-white px-4 py-3 text-[15px] text-slate-800 transition hover:border-slate-400 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-[color-mix(in_srgb,var(--form-accent)_25%,transparent)]";
 
+const horizontal = (field: FormField) => field.settings.optionsLayout === "horizontal";
+
+/** Vertical: one option per row. Horizontal: options side by side, wrapping on small screens. */
+function optionsContainer(field: FormField) {
+  return horizontal(field) ? "flex flex-wrap gap-2" : "grid gap-2";
+}
+
 export interface FieldInputProps {
   field: FormField;
   value: AnswerValue;
@@ -173,11 +180,11 @@ export function FieldInput(props: FieldInputProps) {
       const opts = field.type === "yes_no" ? ["Yes", "No"] : options;
       return (
         <FieldShell field={field} error={error} group>
-          <div className={cn("grid gap-2", field.type === "yes_no" && "grid-cols-2 sm:max-w-sm")}>
+          <div className={cn(field.type === "yes_no" ? "grid grid-cols-2 gap-2 sm:max-w-sm" : optionsContainer(field))}>
             {opts.map((o) => {
               const checked = value === o;
               return (
-                <label key={o} className={cn(optionBase, checked && "border-[var(--form-accent)] bg-[color-mix(in_srgb,var(--form-accent)_6%,white)]")}>
+                <label key={o} className={cn(optionBase, horizontal(field) && "w-auto", checked && "border-[var(--form-accent)] bg-[color-mix(in_srgb,var(--form-accent)_6%,white)]")}>
                   <input
                     type="radio"
                     name={field.field_id}
@@ -229,11 +236,11 @@ export function FieldInput(props: FieldInputProps) {
       }
       return (
         <FieldShell field={field} error={error} group>
-          <div className="grid gap-2">
+          <div className={optionsContainer(field)}>
             {options.map((o) => {
               const on = selected.includes(o);
               return (
-                <label key={o} className={cn(optionBase, on && "border-[var(--form-accent)] bg-[color-mix(in_srgb,var(--form-accent)_6%,white)]")}>
+                <label key={o} className={cn(optionBase, horizontal(field) && "w-auto", on && "border-[var(--form-accent)] bg-[color-mix(in_srgb,var(--form-accent)_6%,white)]")}>
                   <input type="checkbox" name={field.field_id} value={o} checked={on} disabled={disabled} onChange={() => toggle(o)} className="size-5 shrink-0 rounded accent-[var(--form-accent)]" />
                   <span>{o}</span>
                 </label>
