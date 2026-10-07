@@ -51,14 +51,15 @@ function SidebarBody({ user, onNavigate }: { user: ShellUser; onNavigate?: () =>
 export function AdminShell({ user, children }: { user: ShellUser; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[260px_1fr]">
+    <div className="min-h-dvh">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-card focus:px-3 focus:py-2 focus:shadow">
         Skip to content
       </a>
-      <aside className="sticky top-0 hidden h-dvh lg:block">
+      {/* Fixed to the viewport so it stays put while the page scrolls; its own nav scrolls if long. */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] lg:block">
         <SidebarBody user={user} />
       </aside>
-      <div className="flex min-w-0 flex-col">
+      <div className="flex min-h-dvh min-w-0 flex-col lg:pl-[260px]">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-card/90 px-4 backdrop-blur lg:hidden">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
