@@ -1,4 +1,5 @@
 import "server-only";
+import { siteOrigin } from "@/lib/site-origin";
 
 /**
  * Server-side environment access. Importing this module from a Client
@@ -18,7 +19,7 @@ export function requireEnv(name: string): string {
 }
 
 export const env = {
-  appUrl: () => (read("NEXT_PUBLIC_APP_URL") ?? "http://localhost:3000").replace(/\/$/, ""),
+  appUrl: () => siteOrigin(read("NEXT_PUBLIC_APP_URL")),
   timezone: () => read("APP_TIMEZONE") ?? "Asia/Kolkata",
   supabaseUrl: () => requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
   supabaseAnonKey: () => requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
