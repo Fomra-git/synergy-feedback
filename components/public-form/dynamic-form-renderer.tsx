@@ -320,7 +320,12 @@ export function DynamicFormRenderer({
           )}
         </main>
         <footer className="mt-6 text-center text-xs text-slate-500">
-          Your information is kept confidential by {orgName ?? "Synergy Wellness"}.
+          <p>Your information is kept confidential by {orgName ?? "Synergy Wellness"}.</p>
+          <p className="mt-1">
+            <a href="/privacy" target="_blank" rel="noopener" className="underline-offset-2 hover:underline">Privacy Policy</a>
+            <span aria-hidden> · </span>
+            <a href="/terms" target="_blank" rel="noopener" className="underline-offset-2 hover:underline">Terms of Service</a>
+          </p>
         </footer>
       </div>
     </div>

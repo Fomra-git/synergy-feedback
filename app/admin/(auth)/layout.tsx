@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -11,6 +12,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
         {children}
         <p className="mt-8 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} Synergy Wellness. Authorised staff only.</p>
+        <p className="mt-1 text-center text-xs text-muted-foreground">
+          <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
+          <span aria-hidden> · </span>
+          <Link href="/terms" className="hover:underline">Terms of Service</Link>
+        </p>
       </div>
     </main>
   );
