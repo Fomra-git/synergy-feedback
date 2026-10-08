@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 
-/** Shared chrome for the public pages (home, privacy policy, terms). */
+/** Shared chrome for the public pages (privacy policy, terms). */
 export function SiteShell({ children, orgName }: { children: React.ReactNode; orgName: string }) {
   return (
     <div className="flex min-h-dvh flex-col bg-white">
       <header className="border-b">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" aria-label="Synergy Feedback home">
+          <Link href="/admin/login" aria-label="Synergy Feedback staff login">
             <Logo tagline={orgName} />
           </Link>
           <Link href="/admin/login" className="text-sm font-medium text-primary hover:underline">
