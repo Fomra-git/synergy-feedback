@@ -13,8 +13,6 @@ export const metadata: Metadata = {
   title: { default: "Synergy Feedback", template: "%s · Synergy Feedback" },
   description: "Feedback and forms platform for Synergy Wellness — physiotherapy and wellness.",
   applicationName: "Synergy Feedback",
-  // Google Search Console ownership check (needed for Google OAuth app verification).
-  ...(process.env.GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } } : {}),
 };
 
 export const viewport: Viewport = {
