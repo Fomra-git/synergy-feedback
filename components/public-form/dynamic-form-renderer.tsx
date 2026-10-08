@@ -171,10 +171,10 @@ export function DynamicFormRenderer({
         <header className="mb-6 flex flex-col items-center text-center">
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- admin-configured logo
-            <img src={logoUrl} alt={orgName ?? "Logo"} className="mb-4 h-12 w-auto max-w-[200px] object-contain" />
+            <img src={logoUrl} alt={orgName ?? "Logo"} className="mb-5 h-20 w-auto max-w-[260px] object-contain sm:h-24 sm:max-w-[320px]" />
           ) : (
-            <div className="mb-4 flex items-center gap-2 text-sm font-semibold tracking-wide text-slate-700 uppercase">
-              <svg viewBox="0 0 40 40" className="size-9" aria-hidden>
+            <div className="mb-5 flex items-center gap-3 text-base font-semibold tracking-wide text-slate-700 uppercase sm:text-lg">
+              <svg viewBox="0 0 40 40" className="size-12 sm:size-14" aria-hidden>
                 <rect width="40" height="40" rx="10" fill={accent} />
                 <circle cx="20" cy="11" r="3.4" fill="#fff" />
                 <path d="M10.5 27.5c3.2-6.4 7.2-9.6 12-9.6 2.6 0 4.8.8 6.9 2.4" stroke="#fff" strokeWidth="3" strokeLinecap="round" fill="none" />
