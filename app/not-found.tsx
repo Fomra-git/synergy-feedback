@@ -7,7 +7,7 @@ export default function NotFound() {
       <LogoMark className="mb-6 size-12" color="#0f766e" />
       <h1 className="text-2xl font-semibold">Page not found</h1>
       <p className="mt-2 max-w-sm text-muted-foreground">The page you are looking for doesn&apos;t exist or is no longer available.</p>
-      <Link href="/admin/login" className="mt-6 text-sm font-medium text-primary hover:underline">
+      <Link href="/" className="mt-6 text-sm font-medium text-primary hover:underline">
         Go to staff login
       </Link>
     </main>

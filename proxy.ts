@@ -7,5 +7,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Session refresh is only needed where authenticated pages/APIs live.
-  matcher: ["/admin/:path*", "/api/admin/:path*", "/api/google/:path*", "/auth/:path*"],
+  matcher: ["/", "/admin/:path*", "/api/admin/:path*", "/api/google/:path*", "/auth/:path*"],
 };

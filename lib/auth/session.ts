@@ -41,7 +41,7 @@ export async function requireAdminPage(): Promise<AdminSession> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    redirect(user ? "/admin/login?error=not_authorized" : "/admin/login");
+    redirect(user ? "/?error=not_authorized" : "/");
   }
   return session;
 }

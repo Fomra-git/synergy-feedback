@@ -17,7 +17,7 @@ const OAUTH_COOKIE = "sf_google_oauth";
  */
 export async function GET(request: NextRequest) {
   const session = await getAdminSession();
-  if (!session) return NextResponse.redirect(new URL("/admin/login", request.url));
+  if (!session) return NextResponse.redirect(new URL("/", request.url));
 
   const formId = request.nextUrl.searchParams.get("formId");
   const returnTo = safeAdminPath(

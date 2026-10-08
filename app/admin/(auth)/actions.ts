@@ -52,7 +52,7 @@ export async function signInAction(_prev: AuthState, formData: FormData): Promis
 export async function signOutAction() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/admin/login");
+  redirect("/");
 }
 
 export async function requestPasswordResetAction(_prev: AuthState, formData: FormData): Promise<AuthState> {

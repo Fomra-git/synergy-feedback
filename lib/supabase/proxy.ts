@@ -38,7 +38,7 @@ export async function updateSession(request: NextRequest) {
 
   if (isAdminArea && !isPublicAdminPath && !user) {
     const login = request.nextUrl.clone();
-    login.pathname = "/admin/login";
+    login.pathname = "/";
     login.search = "";
     if (path !== "/admin") login.searchParams.set("next", path);
     const redirect = NextResponse.redirect(login);
@@ -46,11 +46,20 @@ export async function updateSession(request: NextRequest) {
     return redirect;
   }
 
-  if (path === "/admin/login" && user) {
+  // The login page lives at the site root ("/" is rewritten to /admin/login in next.config.ts).
+  if ((path === "/" || path === "/admin/login") && user) {
     const dash = request.nextUrl.clone();
     dash.pathname = "/admin/dashboard";
     dash.search = "";
     const redirect = NextResponse.redirect(dash);
+    response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
+    return redirect;
+  }
+
+  if (path === "/admin/login") {
+    const home = request.nextUrl.clone();
+    home.pathname = "/";
+    const redirect = NextResponse.redirect(home);
     response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
     return redirect;
   }

@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
   if (!code || !safeEqual(state, cookie.state)) return redirectWith(request, returnTo, "invalid_state");
 
   const session = await getAdminSession();
-  if (!session || session.userId !== cookie.userId) return redirectWith(request, "/admin/login", "session");
+  if (!session || session.userId !== cookie.userId) return redirectWith(request, "/", "session");
 
   try {
     const tokens = await exchangeAuthorizationCode(code, cookie.verifier);

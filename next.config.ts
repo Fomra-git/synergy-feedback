@@ -42,9 +42,14 @@ const nextConfig: NextConfig = {
       ? [{ protocol: "https", hostname: new URL(supabaseOrigin).hostname, pathname: "/storage/v1/object/public/**" }]
       : [],
   },
+  async rewrites() {
+    // The staff login is the home page: serve it at "/" while the route stays /admin/login.
+    return [{ source: "/", destination: "/admin/login" }];
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
+      { source: "/", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
       { source: "/admin/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
       { source: "/api/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
     ];
