@@ -86,7 +86,7 @@ export function FormSettingsTabs({
   const [tab, setTab] = useState(initialTab);
   const [pending, start] = useTransition();
   const [pub, setPub] = useState<Required<FormPublicSettings>>({
-    appearance: { primaryColor: "#0f766e", backgroundColor: "#f0fdfa", buttonColor: "#0f766e", font: "inter", logoUrl: "", ...form.settings.appearance },
+    appearance: { primaryColor: "#0f766e", backgroundColor: "#f0fdfa", buttonColor: "#0f766e", headerColor: "#1e2749", font: "inter", logoUrl: "", ...form.settings.appearance },
     behavior: { showProgressBar: true, submitButtonText: "Submit", successTitle: "Thank You!", successMessage: "Your feedback has been submitted successfully.", showSubmissionNumber: true, redirectUrl: "", successButtonText: "", successButtonUrl: "", ...form.settings.behavior },
     seo: { title: "", description: "", ...form.settings.seo },
   });
@@ -350,6 +350,7 @@ export function FormSettingsTabs({
                 <p className="font-medium">Using global appearance</p>
                 <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
                   {([
+                    ["Header", globalAppearance.headerColor],
                     ["Primary", globalAppearance.primaryColor],
                     ["Background", globalAppearance.backgroundColor],
                     ["Button", globalAppearance.buttonColor],
@@ -376,7 +377,8 @@ export function FormSettingsTabs({
               </div>
             ) : (
               <>
-                <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ColorInput id="c-header" label="Header color" value={pub.appearance.headerColor ?? "#1e2749"} onChange={(v) => setA({ headerColor: v })} />
                   <ColorInput id="c-primary" label="Primary color" value={pub.appearance.primaryColor ?? "#0f766e"} onChange={(v) => setA({ primaryColor: v })} />
                   <ColorInput id="c-bg" label="Background" value={pub.appearance.backgroundColor ?? "#f0fdfa"} onChange={(v) => setA({ backgroundColor: v })} />
                   <ColorInput id="c-btn" label="Button color" value={pub.appearance.buttonColor ?? "#0f766e"} onChange={(v) => setA({ buttonColor: v })} />
@@ -393,13 +395,16 @@ export function FormSettingsTabs({
               </>
             )}
             <div className="rounded-xl border p-6" style={{ background: preview.backgroundColor }}>
-              <div className="mx-auto max-w-sm rounded-lg bg-white p-5 shadow-sm">
-                <div className="mb-3 h-1.5 rounded" style={{ background: preview.primaryColor }} />
-                <p className="font-semibold">{preview.title}</p>
-                {preview.description && <p className="mt-1 text-sm text-muted-foreground">{preview.description}</p>}
-                <div className="mt-3 h-9 rounded-md border" />
-                <div className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold" style={{ background: preview.buttonColor, color: readableTextColor(preview.buttonColor ?? "#0f766e") }}>
-                  {pub.behavior.submitButtonText || "Submit"}
+              <div className="mx-auto max-w-sm overflow-hidden rounded-lg bg-white shadow-sm">
+                <div className="p-5 text-center font-heading" style={{ background: preview.headerColor ?? "#1e2749", color: readableTextColor(preview.headerColor ?? "#1e2749") }}>
+                  <p className="text-lg font-bold">{preview.title}</p>
+                  {preview.description && <p className="mt-1 text-sm opacity-90">{preview.description}</p>}
+                </div>
+                <div className="p-5">
+                  <div className="h-9 rounded-md border" />
+                  <div className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold" style={{ background: preview.buttonColor, color: readableTextColor(preview.buttonColor ?? "#0f766e") }}>
+                    {pub.behavior.submitButtonText || "Submit"}
+                  </div>
                 </div>
               </div>
             </div>

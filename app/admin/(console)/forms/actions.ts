@@ -47,7 +47,7 @@ export async function createFormAction(input: z.input<typeof formCreateSchema>):
           status: "draft",
           created_by: session.userId,
           settings: {
-            appearance: { useGlobal: true, primaryColor: "#0f766e", backgroundColor: "#f0fdfa", buttonColor: "#0f766e", font: "inter" },
+            appearance: { useGlobal: true, primaryColor: "#0f766e", backgroundColor: "#f0fdfa", buttonColor: "#0f766e", headerColor: "#1e2749", font: "inter" },
             behavior: {
               submitButtonText: "Submit",
               successTitle: "Thank You!",

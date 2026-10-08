@@ -21,6 +21,9 @@ export interface RendererForm {
 
 type Phase = { kind: "form" } | { kind: "success"; submissionNumber: string | null };
 
+/** Default title banner colour (navy), used when a form has none set. */
+export const DEFAULT_HEADER_COLOR = "#1e2749";
+
 const FONT_CLASS: Record<string, string> = {
   inter: "font-sans",
   serif: "font-serif",
@@ -54,6 +57,7 @@ export function DynamicFormRenderer({
   const behavior = form.settings.behavior ?? {};
   const accent = appearance.primaryColor ?? "#0f766e";
   const buttonColor = appearance.buttonColor ?? accent;
+  const headerColor = appearance.headerColor ?? DEFAULT_HEADER_COLOR;
   const steps = useMemo(() => splitIntoSteps(form.fields), [form.fields]);
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState<Phase>({ kind: "form" });
@@ -182,13 +186,20 @@ export function DynamicFormRenderer({
         </header>
 
         <main className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_40px_-12px_rgba(15,23,42,0.15)]">
-          <div className="h-1.5" style={{ background: accent }} aria-hidden />
+          <div className="px-6 py-8 text-center font-heading sm:px-10 sm:py-10" style={{ background: headerColor, color: readableTextColor(headerColor) }}>
+            <h1 className="text-[26px] leading-tight font-bold text-balance sm:text-[32px]">{form.name}</h1>
+            {form.description && (
+              <p id="form-description" className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed whitespace-pre-line opacity-90 sm:text-base">
+                {form.description}
+              </p>
+            )}
+          </div>
           {phase.kind === "success" ? (
             <div className="px-6 py-14 text-center sm:px-10" role="status" aria-live="polite">
               <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-full" style={{ background: `color-mix(in srgb, ${accent} 12%, white)` }}>
                 <CheckCircle2 className="size-9" style={{ color: accent }} aria-hidden />
               </div>
-              <h1 className="text-2xl font-semibold text-slate-900">{behavior.successTitle || "Thank You!"}</h1>
+              <h2 className="text-2xl font-semibold text-slate-900">{behavior.successTitle || "Thank You!"}</h2>
               <p className="mx-auto mt-2 max-w-md text-slate-600">{behavior.successMessage || "Your feedback has been submitted successfully."}</p>
               {behavior.showSubmissionNumber !== false && phase.submissionNumber && (
                 <div className="mx-auto mt-6 inline-block rounded-xl bg-slate-50 px-5 py-3">
@@ -212,20 +223,10 @@ export function DynamicFormRenderer({
             </div>
           ) : closedMessage ? (
             <div className="px-6 py-14 text-center sm:px-10">
-              <h1 className="text-2xl font-semibold text-slate-900">{form.name}</h1>
-              <p className="mt-3 text-slate-600">{closedMessage}</p>
+              <p className="text-slate-600">{closedMessage}</p>
             </div>
           ) : (
             <form onSubmit={(e) => void handleSubmit(onValid, focusFirstError)(e)} noValidate className="px-5 py-7 sm:px-10 sm:py-10" aria-describedby={form.description ? "form-description" : undefined}>
-              <div className="mb-8">
-                <h1 className="text-2xl font-semibold tracking-tight text-balance text-slate-900 sm:text-3xl">{form.name}</h1>
-                {form.description && (
-                  <p id="form-description" className="mt-2 text-[15px] leading-relaxed whitespace-pre-line text-slate-600">
-                    {form.description}
-                  </p>
-                )}
-              </div>
-
               {showProgress && (
                 <div className="mb-8">
                   <div className="mb-2 flex justify-between text-xs font-medium text-slate-500">

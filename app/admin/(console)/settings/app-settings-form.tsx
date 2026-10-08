@@ -128,8 +128,9 @@ export function AppSettingsForm({ initial, canEdit }: { initial: AppSettings; ca
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {([
+              ["headerColor", "Header color"],
               ["primaryColor", "Primary color"],
               ["backgroundColor", "Background"],
               ["buttonColor", "Button color"],
@@ -158,11 +159,12 @@ export function AppSettingsForm({ initial, canEdit }: { initial: AppSettings; ca
           </F>
           <div className="rounded-xl border p-5" style={{ background: fd.backgroundColor }}>
             <div className="mx-auto max-w-sm overflow-hidden rounded-lg bg-white shadow-sm">
-              <div className="h-1.5" style={{ background: fd.primaryColor }} />
+              <div className="px-5 py-5 text-center font-heading" style={{ background: fd.headerColor, color: readableTextColor(fd.headerColor) }}>
+                <p className="text-lg font-bold">{fd.title || "Form name"}</p>
+                <p className="mt-1 text-sm opacity-90">{fd.description || "Form description"}</p>
+              </div>
               <div className="p-5">
-                <p className="font-semibold">{fd.title || "Form name"}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{fd.description || "Form description"}</p>
-                <div className="mt-3 h-9 rounded-md border" />
+                <div className="h-9 rounded-md border" />
                 <div className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold" style={{ background: fd.buttonColor, color: readableTextColor(fd.buttonColor) }}>
                   Submit
                 </div>

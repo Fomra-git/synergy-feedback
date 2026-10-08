@@ -5,6 +5,7 @@ const globals = {
   primaryColor: "#111111",
   backgroundColor: "#222222",
   buttonColor: "#333333",
+  headerColor: "#444444",
   font: "rounded" as const,
   title: "",
   description: "",

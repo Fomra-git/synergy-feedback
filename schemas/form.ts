@@ -125,6 +125,7 @@ export const publicSettingsSchema = z.object({
       primaryColor: hexColor.optional(),
       backgroundColor: hexColor.optional(),
       buttonColor: hexColor.optional(),
+      headerColor: hexColor.optional(),
       font: z.enum(["inter", "serif", "rounded", "system"]).optional(),
       logoUrl: safeUrl,
     })

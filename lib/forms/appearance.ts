@@ -4,6 +4,7 @@ export interface GlobalFormDefaultsInput {
   primaryColor: string;
   backgroundColor: string;
   buttonColor: string;
+  headerColor: string;
   font: NonNullable<FormAppearance["font"]>;
   title: string;
   description: string;
@@ -37,6 +38,7 @@ export function resolveFormPresentation(
       primaryColor: globals.primaryColor,
       backgroundColor: globals.backgroundColor,
       buttonColor: globals.buttonColor,
+      headerColor: globals.headerColor,
       font: globals.font,
     },
   };

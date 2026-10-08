@@ -23,6 +23,8 @@ export const appSettingsSchema = z.object({
       primaryColor: hexColor,
       backgroundColor: hexColor,
       buttonColor: hexColor,
+      /** Background of the title banner at the top of each form. */
+      headerColor: hexColor,
       font: z.enum(["inter", "serif", "rounded", "system"]),
       /** Optional: replaces each form's own title when set. */
       title: z.string().trim().max(150),
@@ -56,6 +58,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
       primaryColor: "#0f766e",
       backgroundColor: "#f0fdfa",
       buttonColor: "#0f766e",
+      headerColor: "#1e2749",
       font: "inter",
       title: "",
       description: "",

@@ -104,6 +104,8 @@ export interface FormAppearance {
   primaryColor?: string;
   backgroundColor?: string;
   buttonColor?: string;
+  /** background of the title banner at the top of the form */
+  headerColor?: string;
   font?: "inter" | "serif" | "rounded" | "system";
   logoUrl?: string;
 }
