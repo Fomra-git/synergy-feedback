@@ -167,7 +167,7 @@ export function DynamicFormRenderer({
 
   return (
     <div style={style} className={cn("min-h-dvh px-4 py-8 sm:py-12", FONT_CLASS[appearance.font ?? "inter"])}>
-      <div ref={topRef} className="mx-auto w-full max-w-2xl">
+      <div ref={topRef} className="mx-auto w-full max-w-2xl lg:max-w-4xl">
         <header className="mb-6 flex flex-col items-center text-center">
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- admin-configured logo
@@ -187,9 +187,9 @@ export function DynamicFormRenderer({
 
         <main className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_40px_-12px_rgba(15,23,42,0.15)]">
           <div className="px-6 py-8 text-center font-heading sm:px-10 sm:py-10" style={{ background: headerColor, color: readableTextColor(headerColor) }}>
-            <h1 className="text-[26px] leading-tight font-bold text-balance sm:text-[32px]">{form.name}</h1>
+            <h1 className="text-[22px] leading-tight font-bold text-balance sm:text-[26px]">{form.name}</h1>
             {form.description && (
-              <p id="form-description" className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed whitespace-pre-line opacity-90 sm:text-base">
+              <p id="form-description" className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed whitespace-pre-line opacity-90 sm:text-[15px]">
                 {form.description}
               </p>
             )}
@@ -199,7 +199,7 @@ export function DynamicFormRenderer({
               <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-full" style={{ background: `color-mix(in srgb, ${accent} 12%, white)` }}>
                 <CheckCircle2 className="size-9" style={{ color: accent }} aria-hidden />
               </div>
-              <h2 className="text-2xl font-semibold text-slate-900">{behavior.successTitle || "Thank You!"}</h2>
+              <h2 className="text-xl font-semibold text-slate-900">{behavior.successTitle || "Thank You!"}</h2>
               <p className="mx-auto mt-2 max-w-md text-slate-600">{behavior.successMessage || "Your feedback has been submitted successfully."}</p>
               {behavior.showSubmissionNumber !== false && phase.submissionNumber && (
                 <div className="mx-auto mt-6 inline-block rounded-xl bg-slate-50 px-5 py-3">
@@ -243,12 +243,12 @@ export function DynamicFormRenderer({
 
               {current.section && (
                 <div className="mb-6 border-b pb-4">
-                  <h2 className="text-lg font-semibold text-slate-900">{current.section.label}</h2>
-                  {current.section.description && <p className="mt-1 text-sm text-slate-500">{current.section.description}</p>}
+                  <h2 className="text-base font-semibold text-slate-900">{current.section.label}</h2>
+                  {current.section.description && <p className="mt-1 text-[13px] text-slate-500">{current.section.description}</p>}
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
                 {current.fields.map((field) =>
                   visible.has(field.field_id) ? (
                     <div key={field.field_id} className={cn(field.settings.width === "half" && isInputType(field.type) ? "sm:col-span-1" : "sm:col-span-2")}>
@@ -301,7 +301,7 @@ export function DynamicFormRenderer({
                   <button
                     type="button"
                     onClick={() => setStep((s) => s - 1)}
-                    className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 font-medium text-slate-700 hover:bg-slate-50"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 hover:bg-slate-50"
                   >
                     <ArrowLeft className="size-4" aria-hidden /> Back
                   </button>
@@ -309,7 +309,7 @@ export function DynamicFormRenderer({
                 <button
                   type="submit"
                   disabled={formState.isSubmitting}
-                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg px-6 text-base font-semibold shadow-sm transition hover:brightness-95 focus-visible:ring-4 focus-visible:ring-[color-mix(in_srgb,var(--form-accent)_30%,transparent)] disabled:opacity-70 sm:flex-none"
+                  className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-6 text-[15px] font-semibold shadow-sm transition hover:brightness-95 focus-visible:ring-4 focus-visible:ring-[color-mix(in_srgb,var(--form-accent)_30%,transparent)] disabled:opacity-70 sm:flex-none"
                   style={{ background: buttonColor, color: readableTextColor(buttonColor) }}
                 >
                   {formState.isSubmitting && <Loader2 className="size-5 animate-spin" aria-hidden />}

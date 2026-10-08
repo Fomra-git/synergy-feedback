@@ -40,7 +40,7 @@ export function FieldShell({
   );
   const help = field.description || field.settings.helpText;
   const helpEl = help ? (
-    <p id={ids.help} className="text-sm text-slate-500">
+    <p id={ids.help} className="text-[13px] text-slate-500">
       {field.description}
       {field.description && field.settings.helpText ? " " : ""}
       {field.settings.helpText}
@@ -50,7 +50,7 @@ export function FieldShell({
   if (group) {
     return (
       <fieldset className={cn("min-w-0 space-y-2.5", className)} aria-describedby={describedBy(field, error)} aria-invalid={!!error || undefined}>
-        <legend id={ids.label} className="mb-1 text-[15px] font-medium text-slate-900">
+        <legend id={ids.label} className="mb-1 text-sm font-medium text-slate-900">
           {labelContent}
         </legend>
         {helpEl}
@@ -61,7 +61,7 @@ export function FieldShell({
   }
   return (
     <div className={cn("min-w-0 space-y-2", className)}>
-      <label id={ids.label} htmlFor={ids.input} className="block text-[15px] font-medium text-slate-900">
+      <label id={ids.label} htmlFor={ids.input} className="block text-sm font-medium text-slate-900">
         {labelContent}
       </label>
       {helpEl}

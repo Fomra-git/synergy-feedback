@@ -8,10 +8,10 @@ import { SignaturePad } from "./signature-pad";
 import { FileUpload } from "./file-upload";
 
 const inputBase =
-  "block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-base text-slate-900 shadow-xs outline-none transition placeholder:text-slate-400 focus:border-[var(--form-accent)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--form-accent)_18%,transparent)] aria-[invalid=true]:border-red-500 disabled:opacity-60";
+  "block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 sm:text-sm shadow-xs outline-none transition placeholder:text-slate-400 focus:border-[var(--form-accent)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--form-accent)_18%,transparent)] aria-[invalid=true]:border-red-500 disabled:opacity-60";
 
 const optionBase =
-  "flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border bg-white px-4 py-3 text-[15px] text-slate-800 transition hover:border-slate-400 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-[color-mix(in_srgb,var(--form-accent)_25%,transparent)]";
+  "flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-800 transition hover:border-slate-400 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-[color-mix(in_srgb,var(--form-accent)_25%,transparent)]";
 
 const horizontal = (field: FormField) => field.settings.optionsLayout === "horizontal";
 
@@ -112,7 +112,7 @@ function ScaleButtons({
             disabled={disabled}
             onClick={() => onChange(selected && !field.required ? "" : n)}
             className={cn(
-              "flex size-11 items-center justify-center rounded-lg border text-[15px] font-semibold tabular-nums transition sm:size-12",
+              "flex size-10 items-center justify-center rounded-lg border text-sm font-semibold tabular-nums transition sm:size-11",
               selected ? "border-transparent bg-[var(--form-accent)] text-[var(--form-accent-fg)] shadow" : "bg-white text-slate-700 hover:border-slate-400",
             )}
           >
@@ -135,14 +135,14 @@ export function FieldInput(props: FieldInputProps) {
       const Tag = (level === 1 ? "h2" : level === 2 ? "h3" : "h4") as "h2";
       return (
         <div className="pt-2">
-          <Tag className={cn("font-semibold text-slate-900", level === 1 ? "text-2xl" : level === 2 ? "text-xl" : "text-lg")}>{field.label}</Tag>
-          {field.description ? <p className="mt-1 text-sm text-slate-500">{field.description}</p> : null}
+          <Tag className={cn("font-semibold text-slate-900", level === 1 ? "text-xl" : level === 2 ? "text-lg" : "text-base")}>{field.label}</Tag>
+          {field.description ? <p className="mt-1 text-[13px] text-slate-500">{field.description}</p> : null}
         </div>
       );
     }
     case "paragraph":
       return (
-        <div className="text-[15px] leading-relaxed whitespace-pre-line text-slate-600">
+        <div className="text-sm leading-relaxed whitespace-pre-line text-slate-600">
           {field.label ? <p className="mb-1 font-medium text-slate-800">{field.label}</p> : null}
           {field.description}
         </div>
@@ -221,7 +221,7 @@ export function FieldInput(props: FieldInputProps) {
                     disabled={disabled}
                     onClick={() => toggle(o)}
                     className={cn(
-                      "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 py-2 text-[15px] transition",
+                      "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition",
                       on ? "border-transparent bg-[var(--form-accent)] text-[var(--form-accent-fg)]" : "bg-white text-slate-700 hover:border-slate-400",
                     )}
                   >
