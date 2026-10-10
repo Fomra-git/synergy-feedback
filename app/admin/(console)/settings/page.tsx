@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { env, isCaptchaConfigured, isEmailConfigured, isGoogleConfigured } from "@/lib/env";
 import { googleScopes } from "@/lib/google/oauth";
 import { getAppSettings } from "@/services/settings";
+import { listBranchOptions } from "@/services/forms/admin";
 import type { ProfileRow } from "@/types/db";
 import { AppSettingsForm } from "./app-settings-form";
 import { ProfileForm, TeamTable } from "./team";
@@ -25,7 +26,7 @@ function Status({ ok, label }: { ok: boolean; label: string }) {
 
 export default async function SettingsPage() {
   const session = await requireAdminPage();
-  const settings = await getAppSettings();
+  const [settings, branches] = await Promise.all([getAppSettings(), listBranchOptions()]);
   const supabase = await createClient();
   const { data: team } = session.isSuperAdmin
     ? await supabase.from("profiles").select("*").order("created_at").returns<ProfileRow[]>()
@@ -36,7 +37,7 @@ export default async function SettingsPage() {
       <PageHeader title="Settings" description="Organisation, branding, email, integrations and security." />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <AppSettingsForm initial={settings} canEdit={session.isSuperAdmin} />
+          <AppSettingsForm initial={settings} canEdit={session.isSuperAdmin} branches={branches} emailConfigured={isEmailConfigured()} />
           {session.isSuperAdmin && team && (
             <Card>
               <CardHeader>

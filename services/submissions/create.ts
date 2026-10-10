@@ -9,6 +9,7 @@ import { validateAnswers } from "@/lib/forms/validation";
 import { logError } from "@/lib/logger";
 import { getAppSettings } from "@/services/settings";
 import { sendSubmissionNotification } from "@/services/email/notifications";
+import { resolveNotificationRecipients } from "@/lib/email/recipients";
 import { runSyncBatch } from "@/services/google-sheets/sync";
 import type { PublishedForm } from "@/services/forms/public";
 import type { AnswerMap, FormNotificationSettings, FormSubmissionSettings, UploadedFileRef } from "@/types/forms";
@@ -165,15 +166,22 @@ export async function afterSubmission(form: PublishedForm, result: CreateSubmiss
     const n = result.notification;
     if (n.enabled === false) return;
     const settings = await getAppSettings();
-    const recipients = n.recipients?.length ? n.recipients : settings.email.defaultRecipients;
-    if (!recipients.length) return;
 
     const db = createAdminClient();
     const { data: sub } = await db
       .from("form_submissions")
-      .select("submitted_at, branches(name)")
+      .select("submitted_at, branch_id, branches(name)")
       .eq("id", result.submissionId)
-      .single<{ submitted_at: string; branches: { name: string } | null }>();
+      .single<{ submitted_at: string; branch_id: string | null; branches: { name: string } | null }>();
+
+    const recipients = resolveNotificationRecipients({
+      formEnabled: n.enabled,
+      formRecipients: n.recipients,
+      allForms: settings.email.defaultRecipients,
+      branchRecipients: settings.email.branchRecipients,
+      branchId: sub?.branch_id,
+    });
+    if (!recipients.length) return;
 
     let answers: { label: string; value: string }[] | undefined;
     if (n.includeAnswers) {

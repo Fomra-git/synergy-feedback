@@ -25,10 +25,25 @@ function F({ id, label, children, hint }: { id: string; label: string; children:
   );
 }
 
-export function AppSettingsForm({ initial, canEdit }: { initial: AppSettings; canEdit: boolean }) {
+const parseEmails = (v: string) => Array.from(new Set(v.split(/[,;\s]+/).map((r) => r.trim().toLowerCase()).filter(Boolean)));
+
+export function AppSettingsForm({
+  initial,
+  canEdit,
+  branches,
+  emailConfigured,
+}: {
+  initial: AppSettings;
+  canEdit: boolean;
+  branches: { id: string; name: string; status: string }[];
+  emailConfigured: boolean;
+}) {
   const router = useRouter();
   const [s, setS] = useState(initial);
   const [recipients, setRecipients] = useState(initial.email.defaultRecipients.join(", "));
+  const [branchDrafts, setBranchDrafts] = useState<Record<string, string>>(() =>
+    Object.fromEntries(branches.map((b) => [b.id, (initial.email.branchRecipients[b.id] ?? []).join(", ")])),
+  );
   const [pending, start] = useTransition();
   const [uploading, setUploading] = useState(false);
   const dis = !canEdit;
@@ -40,7 +55,15 @@ export function AppSettingsForm({ initial, canEdit }: { initial: AppSettings; ca
     start(async () => {
       const res = await saveAppSettingsAction({
         ...s,
-        email: { ...s.email, defaultRecipients: recipients.split(/[,\s]+/).map((r) => r.trim().toLowerCase()).filter(Boolean) },
+        email: {
+          ...s.email,
+          defaultRecipients: parseEmails(recipients),
+          branchRecipients: Object.fromEntries(
+            Object.entries(branchDrafts)
+              .map(([id, v]) => [id, parseEmails(v)] as const)
+              .filter(([, list]) => list.length > 0),
+          ),
+        },
       });
       if (res.ok) {
         toast.success(res.message);
@@ -175,8 +198,10 @@ export function AppSettingsForm({ initial, canEdit }: { initial: AppSettings; ca
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Email</CardTitle>
-          <CardDescription>The sending address itself is the EMAIL_FROM environment variable (verified in Resend).</CardDescription>
+          <CardTitle>Email notifications</CardTitle>
+          <CardDescription>
+            Who is emailed when someone submits a form. Everyone below for the matching scope is notified (duplicates are sent once). Add form-specific recipients in Form → Settings → Notifications.
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <F id="em-name" label="Sender Name">
@@ -185,10 +210,42 @@ export function AppSettingsForm({ initial, canEdit }: { initial: AppSettings; ca
           <F id="em-email" label="Sender Email (reply-to reference)">
             <Input id="em-email" type="email" disabled={dis} value={s.email.senderEmail} onChange={(e) => setS({ ...s, email: { ...s.email, senderEmail: e.target.value } })} />
           </F>
+          {!emailConfigured && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 sm:col-span-2">
+              Email sending is not set up yet: add RESEND_API_KEY and EMAIL_FROM in your Vercel environment variables, then redeploy.
+            </p>
+          )}
           <div className="sm:col-span-2">
-            <F id="em-rec" label="Default notification recipients" hint="Comma separated. Used when a form has no recipients of its own.">
-              <Input id="em-rec" disabled={dis} value={recipients} onChange={(e) => setRecipients(e.target.value)} />
+            <F id="em-rec" label="Recipients for all forms" hint="Comma separated. Emailed about every submission on every form.">
+              <Input id="em-rec" disabled={dis} value={recipients} placeholder="manager@synergywellness.in" onChange={(e) => setRecipients(e.target.value)} />
             </F>
+          </div>
+          <div className="space-y-3 sm:col-span-2">
+            <div>
+              <p className="text-sm font-medium">Recipients by branch</p>
+              <p className="text-xs text-muted-foreground">Comma separated. Emailed about submissions for that branch only (any form).</p>
+            </div>
+            {branches.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No branches yet.</p>
+            ) : (
+              <div className="divide-y rounded-lg border">
+                {branches.map((b) => (
+                  <div key={b.id} className="grid gap-2 p-3 sm:grid-cols-[180px_1fr] sm:items-center">
+                    <Label htmlFor={`br-${b.id}`} className="flex items-center gap-2">
+                      {b.name}
+                      {b.status !== "active" && <span className="text-xs font-normal text-muted-foreground">(inactive)</span>}
+                    </Label>
+                    <Input
+                      id={`br-${b.id}`}
+                      disabled={dis}
+                      value={branchDrafts[b.id] ?? ""}
+                      placeholder="branch.manager@synergywellness.in"
+                      onChange={(e) => setBranchDrafts((d) => ({ ...d, [b.id]: e.target.value }))}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -271,7 +271,7 @@ export function FormSettingsTabs({
           </CardHeader>
           <CardContent className="space-y-4">
             <Toggle id="notify" label="Email notifications" checked={priv.notifications.enabled !== false} onChange={(v) => setNot({ enabled: v })} />
-            <Field label="Recipients" hint="If empty, the default recipients from organisation settings are used.">
+            <Field label="Recipients for this form" hint="Emailed in addition to the all-forms and branch recipients set in Admin → Settings → Email notifications.">
               <div className="flex gap-2">
                 <Input
                   value={recipientDraft}

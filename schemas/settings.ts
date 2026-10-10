@@ -35,7 +35,10 @@ export const appSettingsSchema = z.object({
   email: z.object({
     senderName: z.string().trim().max(80),
     senderEmail: z.union([z.email(), z.literal("")]),
+    /** Emailed about every submission, on every form. */
     defaultRecipients: z.array(z.email()).max(20),
+    /** Branch id → addresses emailed about submissions for that branch. */
+    branchRecipients: z.record(z.uuid(), z.array(z.email()).max(20)),
   }),
   security: z.object({
     captchaEnabled: z.boolean(),
@@ -64,7 +67,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
       description: "",
     },
   },
-  email: { senderName: "Synergy Feedback", senderEmail: "", defaultRecipients: [] },
+  email: { senderName: "Synergy Feedback", senderEmail: "", defaultRecipients: [], branchRecipients: {} },
   security: { captchaEnabled: false, submissionRateLimitPerMinute: 10, submissionRateLimitPerHour: 60 },
   timezone: "Asia/Kolkata",
 };

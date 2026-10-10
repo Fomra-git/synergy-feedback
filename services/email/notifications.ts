@@ -2,6 +2,7 @@ import "server-only";
 import { env } from "@/lib/env";
 import { formatDateTime } from "@/lib/forms/format";
 import { sendEmail } from "./resend";
+import { MAX_NOTIFICATION_RECIPIENTS } from "@/lib/email/recipients";
 
 export interface SubmissionNotification {
   recipients: string[];
@@ -98,7 +99,7 @@ ${answersHtml}
  * contains no patient answers (health data) — only form, branch and ID.
  */
 export async function sendSubmissionNotification(n: SubmissionNotification): Promise<boolean> {
-  const recipients = Array.from(new Set(n.recipients.map((r) => r.trim().toLowerCase()).filter(Boolean))).slice(0, 20);
+  const recipients = Array.from(new Set(n.recipients.map((r) => r.trim().toLowerCase()).filter(Boolean))).slice(0, MAX_NOTIFICATION_RECIPIENTS);
   if (!recipients.length) return false;
   const { subject, html, text } = buildSubmissionEmail(n);
   return sendEmail({

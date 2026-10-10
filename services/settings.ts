@@ -21,7 +21,11 @@ export const getAppSettings = cache(async (): Promise<AppSettings> => {
         ...(data.branding ?? {}),
         formDefaults: { ...DEFAULT_APP_SETTINGS.branding.formDefaults, ...(data.branding?.formDefaults ?? {}) },
       },
-      email: { ...DEFAULT_APP_SETTINGS.email, ...(data.email ?? {}) },
+      email: {
+        ...DEFAULT_APP_SETTINGS.email,
+        ...(data.email ?? {}),
+        branchRecipients: { ...(data.email?.branchRecipients ?? {}) },
+      },
       security: { ...DEFAULT_APP_SETTINGS.security, ...(data.security ?? {}) },
       timezone: data.timezone ?? DEFAULT_APP_SETTINGS.timezone,
     };
