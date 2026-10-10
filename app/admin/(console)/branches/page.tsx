@@ -12,10 +12,13 @@ import { env } from "@/lib/env";
 import { formatNumber } from "@/lib/utils";
 import type { BranchRow } from "@/types/db";
 import { BranchFormDialog } from "./branch-form-dialog";
+import { requireAdminPage } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Branches" };
 
 export default async function BranchesPage() {
+  const session = await requireAdminPage();
+  const canManage = session.can("branches.manage");
   const supabase = await createClient();
   const { data } = await supabase.from("branches").select("*").is("archived_at", null).order("name").returns<BranchRow[]>();
   const branches = data ?? [];
@@ -27,10 +30,10 @@ export default async function BranchesPage() {
 
   return (
     <>
-      <PageHeader title="Branches" description="Synergy Wellness clinic locations." actions={<BranchFormDialog />} />
+      <PageHeader title="Branches" description="Synergy Wellness clinic locations." actions={canManage ? <BranchFormDialog /> : undefined} />
       <Card className="overflow-hidden">
         {branches.length === 0 ? (
-          <EmptyState icon={Building2} title="No branches yet" description="Add your first clinic location to assign forms to it." action={<BranchFormDialog />} />
+          <EmptyState icon={Building2} title="No branches yet" description="Add your first clinic location to assign forms to it." action={canManage ? <BranchFormDialog /> : undefined} />
         ) : (
           <Table>
             <TableHeader>

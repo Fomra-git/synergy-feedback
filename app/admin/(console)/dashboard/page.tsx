@@ -13,6 +13,7 @@ import {
   Sheet,
   Sun,
   CalendarClock,
+  Users,
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -25,6 +26,7 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { FormsOverview } from "@/components/dashboard/forms-overview";
 import { listDashboardForms } from "@/services/forms/admin";
 import { requireAdminPage } from "@/lib/auth/session";
+import { formMenuAccess } from "@/lib/auth/permissions";
 import { getByBranch, getDashboardStats, getRecentSubmissions, getSyncCounts, getTimeseries } from "@/services/analytics";
 import { formatDateTime } from "@/lib/forms/format";
 import { env } from "@/lib/env";
@@ -52,11 +54,22 @@ export default async function DashboardPage() {
         title="Dashboard"
         description="Overview of forms, submissions and Google Sheets sync across Synergy Wellness."
         actions={
-          <Button asChild>
-            <Link href="/admin/forms/new">
-              <FilePlus2 /> Create Form
-            </Link>
-          </Button>
+          <>
+            {session.isAdmin && (
+              <Button asChild variant="outline">
+                <Link href="/admin/users">
+                  <Users /> Manage users
+                </Link>
+              </Button>
+            )}
+            {session.can("forms.create") && (
+              <Button asChild>
+                <Link href="/admin/forms/new">
+                  <FilePlus2 /> Create Form
+                </Link>
+              </Button>
+            )}
+          </>
         }
       />
 
@@ -72,7 +85,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <FormsOverview forms={forms} today={today} isSuperAdmin={session.isSuperAdmin} />
+      <FormsOverview forms={forms} today={today} access={formMenuAccess(session)} />
 
       <section aria-label="Key metrics" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         <StatCard label="Total Forms" value={stats.totalForms} icon={FileText} href="/admin/forms" />

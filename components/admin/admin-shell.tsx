@@ -6,13 +6,14 @@ import { LogOut, Menu, UserCircle2 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { SidebarNav } from "./sidebar-nav";
+import { SidebarNav, type NavAccess } from "./sidebar-nav";
 import { signOutAction } from "@/app/admin/(auth)/actions";
 
 interface ShellUser {
   name: string;
   email: string;
   role: string;
+  access: NavAccess;
 }
 
 function SidebarBody({ user, onNavigate }: { user: ShellUser; onNavigate?: () => void }) {
@@ -24,14 +25,14 @@ function SidebarBody({ user, onNavigate }: { user: ShellUser; onNavigate?: () =>
         </Link>
       </div>
       <div className="flex-1 overflow-y-auto px-3 py-4">
-        <SidebarNav onNavigate={onNavigate} />
+        <SidebarNav onNavigate={onNavigate} access={user.access} />
       </div>
       <div className="border-t border-sidebar-border p-3">
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
           <UserCircle2 className="size-8 text-slate-400" aria-hidden />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-white">{user.name}</p>
-            <p className="truncate text-xs text-slate-400">{user.role === "super_admin" ? "Super Admin" : "Admin"}</p>
+            <p className="truncate text-xs text-slate-400">{user.role === "super_admin" ? "Super Admin" : user.role === "admin" ? "Admin" : "Staff"}</p>
           </div>
         </div>
         <form action={signOutAction}>

@@ -71,8 +71,18 @@ update public.profiles set role = 'super_admin', is_active = true
 where email = 'you@synergywellness.com';
 ```
 
-New users start as **inactive staff**. A super admin activates them and assigns a role under
-**Settings → Team**.
+After that, add everyone else from **Users** in the admin console (admins and super admins only):
+
+| Role | Can do |
+|---|---|
+| Super Admin | Everything, including organisation settings and permanent deletes |
+| Admin | Every feature within their branches, plus adding and editing users |
+| Staff | Only the permissions ticked for them: create forms, edit forms, view / export / archive submissions, analytics, branches, Google Sheets |
+
+Each admin or staff member can be limited to specific branches; they then only see those branches'
+forms, submissions and stats. Branch limits and permissions are enforced by PostgreSQL row-level
+security as well as in the app. New users either get an invite link (emailed through Resend when it is
+configured, otherwise shown to copy) or a password set by the admin.
 
 ### Scripts
 

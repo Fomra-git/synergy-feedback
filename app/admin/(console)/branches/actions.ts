@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdmin } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/session";
 import { check, runAction, UserFacingError, type ActionResult } from "@/lib/actions";
 import { logAudit } from "@/lib/audit";
 import { branchSchema, type BranchInput } from "@/schemas/branch";
@@ -12,7 +12,7 @@ export async function saveBranchAction(input: BranchInput): Promise<ActionResult
   return runAction(
     "saveBranch",
     async () => {
-      const session = await requireAdmin();
+      const session = await requirePermission("branches.manage");
       const data = branchSchema.parse(input);
       const supabase = await createClient();
       const row = {
@@ -46,7 +46,7 @@ export async function setBranchStatusAction(branchId: string, status: "active" |
   return runAction(
     "setBranchStatus",
     async () => {
-      const session = await requireAdmin();
+      const session = await requirePermission("branches.manage");
       const supabase = await createClient();
       const updated = check(await supabase.from("branches").update({ status }).eq("id", z.uuid().parse(branchId)).select("id"));
       if (!updated?.length) throw new UserFacingError("Branch not found or access denied.");
@@ -64,7 +64,7 @@ export async function archiveBranchAction(branchId: string): Promise<ActionResul
   return runAction(
     "archiveBranch",
     async () => {
-      const session = await requireAdmin();
+      const session = await requirePermission("branches.manage");
       const supabase = await createClient();
       const updated = check(
         await supabase.from("branches").update({ archived_at: new Date().toISOString(), status: "inactive" }).eq("id", z.uuid().parse(branchId)).select("id"),

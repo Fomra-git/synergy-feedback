@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { Pagination } from "@/components/admin/pagination";
 import { FormStatusBadge, SheetStatusBadge } from "@/components/admin/status-badges";
 import { FormActionsMenu } from "@/components/admin/form-actions-menu";
+import { formMenuAccess } from "@/lib/auth/permissions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,9 +36,11 @@ export default async function FormsPage(props: PageProps<"/admin/forms">) {
         title="Forms"
         description="Create, publish and manage feedback forms for every branch."
         actions={
-          <Button asChild>
-            <Link href="/admin/forms/new"><FilePlus2 /> Create Form</Link>
-          </Button>
+          session.can("forms.create") ? (
+            <Button asChild>
+              <Link href="/admin/forms/new"><FilePlus2 /> Create Form</Link>
+            </Button>
+          ) : undefined
         }
       />
 
@@ -70,7 +73,7 @@ export default async function FormsPage(props: PageProps<"/admin/forms">) {
               icon={FileText}
               title="No Forms Yet"
               description="Create your first Synergy Wellness feedback form."
-              action={<Button asChild><Link href="/admin/forms/new"><FilePlus2 /> Create Form</Link></Button>}
+              action={session.can("forms.create") ? <Button asChild><Link href="/admin/forms/new"><FilePlus2 /> Create Form</Link></Button> : undefined}
             />
           )
         ) : (
@@ -94,19 +97,19 @@ export default async function FormsPage(props: PageProps<"/admin/forms">) {
                   {items.map((f) => (
                     <TableRow key={f.id}>
                       <TableCell className="max-w-[260px]">
-                        <Link href={`/admin/forms/${f.id}`} className="font-medium hover:text-primary hover:underline">{f.name}</Link>
+                        {session.can("forms.edit") ? <Link href={`/admin/forms/${f.id}`} className="font-medium hover:text-primary hover:underline">{f.name}</Link> : <span className="font-medium">{f.name}</span>}
                         <p className="truncate text-xs text-muted-foreground">/forms/{f.slug}</p>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{f.branch?.name ?? "—"}</TableCell>
                       <TableCell><FormStatusBadge status={f.status} /></TableCell>
                       <TableCell className="text-right tabular-nums">
-                        <Link href={`/admin/submissions?form=${f.id}`} className="hover:underline">{formatNumber(f.responses)}</Link>
+                        {session.can("submissions.view") ? <Link href={`/admin/submissions?form=${f.id}`} className="hover:underline">{formatNumber(f.responses)}</Link> : "—"}
                       </TableCell>
                       <TableCell><SheetStatusBadge status={f.sheet?.status} enabled={f.sheet?.enabled} /></TableCell>
                       <TableCell className="whitespace-nowrap text-muted-foreground">{formatDate(f.created_at, tz)}</TableCell>
                       <TableCell className="whitespace-nowrap text-muted-foreground">{formatDate(f.updated_at, tz)}</TableCell>
                       <TableCell className="text-right">
-                        <FormActionsMenu form={f} publicUrl={publicFormUrl(f.slug)} isSuperAdmin={session.isSuperAdmin} />
+                        <FormActionsMenu form={f} publicUrl={publicFormUrl(f.slug)} access={formMenuAccess(session)} />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -118,14 +121,14 @@ export default async function FormsPage(props: PageProps<"/admin/forms">) {
               {items.map((f) => (
                 <li key={f.id} className="flex items-start gap-3 p-4">
                   <div className="min-w-0 flex-1">
-                    <Link href={`/admin/forms/${f.id}`} className="font-medium">{f.name}</Link>
+                    {session.can("forms.edit") ? <Link href={`/admin/forms/${f.id}`} className="font-medium">{f.name}</Link> : <span className="font-medium">{f.name}</span>}
                     <p className="text-xs text-muted-foreground">{f.branch?.name ?? "No branch"} · {formatNumber(f.responses)} responses</p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       <FormStatusBadge status={f.status} />
                       <SheetStatusBadge status={f.sheet?.status} enabled={f.sheet?.enabled} />
                     </div>
                   </div>
-                  <FormActionsMenu form={f} publicUrl={publicFormUrl(f.slug)} isSuperAdmin={session.isSuperAdmin} />
+                  <FormActionsMenu form={f} publicUrl={publicFormUrl(f.slug)} access={formMenuAccess(session)} />
                 </li>
               ))}
             </ul>

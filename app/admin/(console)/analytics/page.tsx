@@ -1,3 +1,4 @@
+import { requirePermissionPage } from "@/lib/auth/session";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/admin/page-header";
@@ -10,6 +11,7 @@ import { cn, formatNumber } from "@/lib/utils";
 export const metadata: Metadata = { title: "Analytics" };
 
 export default async function AnalyticsPage(props: PageProps<"/admin/analytics">) {
+  await requirePermissionPage("analytics.view");
   const sp = await props.searchParams;
   const days = parseRange(sp.range);
   const [series, byBranch, byForm, sync] = await Promise.all([

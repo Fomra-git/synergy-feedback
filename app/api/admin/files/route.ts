@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session.can("submissions.view")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const answerId = request.nextUrl.searchParams.get("answer");
   const index = Number(request.nextUrl.searchParams.get("i") ?? "0");

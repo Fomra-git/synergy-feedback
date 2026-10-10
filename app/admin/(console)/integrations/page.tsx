@@ -1,3 +1,4 @@
+import { requirePermissionPage } from "@/lib/auth/session";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Mail, Sheet, ShieldCheck } from "lucide-react";
@@ -8,7 +9,8 @@ import { isCaptchaConfigured, isEmailConfigured, isGoogleConfigured } from "@/li
 
 export const metadata: Metadata = { title: "Integrations" };
 
-export default function IntegrationsPage() {
+export default async function IntegrationsPage() {
+  await requirePermissionPage("integrations.manage");
   const items = [
     {
       title: "Google Sheets",

@@ -36,7 +36,9 @@ const LOGO_TYPES = ["image/png", "image/jpeg", "image/webp"];
 /** Uploads a logo to the public branding bucket. SVG is excluded (script risk). */
 export async function uploadLogoAction(formData: FormData): Promise<ActionResult<{ url: string }>> {
   return runAction("uploadLogo", async () => {
-    await requireAdmin();
+    const session = await requireAdmin();
+    // Organisation logo (super admin) or a form's own logo (form editors).
+    if (!session.isSuperAdmin && !session.can("forms.edit")) throw new UserFacingError("You do not have permission to upload logos.");
     const file = formData.get("file");
     if (!(file instanceof File)) throw new UserFacingError("Choose an image to upload.");
     if (!LOGO_TYPES.includes(file.type)) throw new UserFacingError("Logo must be a PNG, JPG or WebP image.");
@@ -64,25 +66,5 @@ export async function updateProfileAction(input: { fullName: string }): Promise<
       return undefined;
     },
     "Profile updated",
-  );
-}
-
-export async function updateTeamMemberAction(input: { userId: string; role: "admin" | "super_admin" | "staff"; isActive: boolean }): Promise<ActionResult> {
-  return runAction(
-    "updateTeamMember",
-    async () => {
-      const session = await requireSuperAdmin();
-      if (!["admin", "super_admin", "staff"].includes(input.role)) throw new UserFacingError("Invalid role.");
-      const supabase = await createClient();
-      const { error } = await supabase.from("profiles").update({ role: input.role, is_active: Boolean(input.isActive) }).eq("id", input.userId);
-      if (error) {
-        if (error.code === "42501") throw new UserFacingError(error.message.replace(/^insufficient_privilege:\s*/, ""));
-        throw error;
-      }
-      await logAudit({ userId: session.userId, action: "user.updated", entityType: "profile", entityId: input.userId, metadata: { role: input.role, isActive: input.isActive } });
-      revalidatePath("/admin/settings");
-      return undefined;
-    },
-    "Team member updated",
   );
 }

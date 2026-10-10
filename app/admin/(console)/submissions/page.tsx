@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdminPage } from "@/lib/auth/session";
+import { requirePermissionPage } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 import { listBranchOptions, listFormOptions } from "@/services/forms/admin";
 import { applySubmissionFilters, parseSubmissionFilters, syncEmbed } from "@/services/submissions/query";
@@ -20,7 +20,7 @@ export const metadata: Metadata = { title: "Submissions" };
 const PAGE_SIZE = 25;
 
 export default async function SubmissionsPage(props: PageProps<"/admin/submissions">) {
-  const session = await requireAdminPage();
+  const session = await requirePermissionPage("submissions.view");
   const sp = await props.searchParams;
   const filters = parseSubmissionFilters(sp);
   const page = filters.page ?? 1;
@@ -56,7 +56,7 @@ export default async function SubmissionsPage(props: PageProps<"/admin/submissio
         title="Submissions"
         description="Search, filter, review and export responses."
         actions={
-          <>
+          session.can("submissions.export") && <>
             <Button asChild variant="outline">
               <a href={`/api/admin/submissions/export?${exportQs}`} download>
                 <Download /> CSV
@@ -118,7 +118,7 @@ export default async function SubmissionsPage(props: PageProps<"/admin/submissio
           />
         ) : (
           <>
-            <SubmissionsTable rows={rows} timeZone={tz} archivedView={filters.status === "archived"} isSuperAdmin={session.isSuperAdmin} />
+            <SubmissionsTable rows={rows} timeZone={tz} archivedView={filters.status === "archived"} canManage={session.can("submissions.manage")} />
             <Pagination page={page} pageSize={PAGE_SIZE} total={count ?? rows.length} basePath="/admin/submissions" params={params} />
           </>
         )}

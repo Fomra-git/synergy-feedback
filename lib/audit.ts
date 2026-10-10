@@ -25,7 +25,10 @@ export type AuditAction =
   | "submission.deleted"
   | "submissions.exported"
   | "settings.updated"
-  | "user.updated";
+  | "user.updated"
+  | "user.created"
+  | "user.invite_link_created"
+  | "user.reset_link_created";
 
 /** Append-only audit trail. Failures are logged but never break the user action. */
 export async function logAudit(entry: {

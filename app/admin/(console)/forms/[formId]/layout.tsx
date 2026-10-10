@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdminPage } from "@/lib/auth/session";
+import { requirePermissionPage } from "@/lib/auth/session";
 import { FormStatusBadge, SheetStatusBadge } from "@/components/admin/status-badges";
 import { FormActionsMenu } from "@/components/admin/form-actions-menu";
+import { formMenuAccess } from "@/lib/auth/permissions";
 import { Button } from "@/components/ui/button";
 import { publicFormUrl } from "@/lib/urls";
 import { FormTabs } from "./form-tabs";
@@ -13,7 +14,7 @@ import type { FormRow, SheetConnectionRow } from "@/types/db";
 export default async function FormLayout(props: LayoutProps<"/admin/forms/[formId]">) {
   const { formId } = await props.params;
   if (!/^[0-9a-f-]{36}$/i.test(formId)) notFound();
-  const session = await requireAdminPage();
+  const session = await requirePermissionPage("forms.edit");
   const supabase = await createClient();
   const [{ data: form }, { data: conn }] = await Promise.all([
     supabase.from("forms").select("id, name, slug, status, branch:branches(name)").eq("id", formId).maybeSingle(),
@@ -45,7 +46,7 @@ export default async function FormLayout(props: LayoutProps<"/admin/forms/[formI
               </a>
             </Button>
           )}
-          <FormActionsMenu form={f} publicUrl={url} isSuperAdmin={session.isSuperAdmin} />
+          <FormActionsMenu form={f} publicUrl={url} access={formMenuAccess(session)} />
         </div>
       </div>
       <FormTabs formId={formId} />

@@ -301,6 +301,65 @@ begin
 end $$;
 rollback;
 
+
+-- =============================================================================
+-- Staff: branch scope + granular permissions
+-- =============================================================================
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-00000000000e', 'staff-viewer@test.local'),
+  ('00000000-0000-0000-0000-00000000000f', 'staff-none@test.local');
+update public.profiles set role = 'staff', is_active = true, permissions = '{submissions.view}'
+  where email = 'staff-viewer@test.local';
+update public.profiles set role = 'staff', is_active = true where email = 'staff-none@test.local';
+insert into public.profile_branches (profile_id, branch_id) values
+  ('00000000-0000-0000-0000-00000000000e', '10000000-0000-0000-0000-000000000001');
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000e', true);
+do $$
+declare n int;
+begin
+  select count(*) into n from public.forms;
+  assert n = 2, 'scoped staff should see both Anna Nagar forms, got ' || n;
+  select count(*) into n from public.branches;
+  assert n = 1, 'scoped staff should see only their branch';
+  select count(*) into n from public.form_submissions;
+  assert n > 0, 'staff with submissions.view should see submissions';
+  select count(*) into n from public.submission_answers;
+  assert n > 0, 'staff with submissions.view should see answers';
+  update public.forms set name = 'hacked' where id = '20000000-0000-0000-0000-000000000002';
+  assert not found, 'staff without forms.edit must not update forms';
+  update public.form_submissions set status = 'archived';
+  assert not found, 'staff without submissions.manage must not archive';
+  begin
+    insert into public.branches (name, code) values ('Nope', 'NOPE');
+    raise exception 'staff created a branch';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.profiles set permissions = '{forms.edit}' where id = '00000000-0000-0000-0000-00000000000e';
+    raise exception 'staff granted themselves a permission';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+rollback;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000f', true);
+do $$
+declare n int;
+begin
+  select count(*) into n from public.forms;
+  assert n = 2, 'unscoped staff sees forms of all branches';
+  select count(*) into n from public.form_submissions;
+  assert n = 0, 'staff without submissions.view must not see submissions';
+  update public.form_fields set label = 'x';
+  assert not found, 'staff without forms.edit must not edit fields';
+end $$;
+rollback;
+
 -- audit log is append-only even for the owner
 do $$ begin
   insert into public.audit_logs (action, entity_type) values ('test', 'test');

@@ -68,6 +68,7 @@ function toLocalInput(iso: string | null | undefined) {
 
 export function FormSettingsTabs({
   initialTab,
+  canIntegrations,
   googleNotice,
   form,
   globalAppearance,
@@ -75,6 +76,7 @@ export function FormSettingsTabs({
   google,
 }: {
   initialTab: string;
+  canIntegrations: boolean;
   googleNotice: string | null;
   form: { id: string; name: string; slug: string; description: string | null; settings: FormPublicSettings };
   globalAppearance: GlobalFormDefaults;
@@ -174,7 +176,7 @@ export function FormSettingsTabs({
         <TabsTrigger value="general"><Settings2 />General</TabsTrigger>
         <TabsTrigger value="submission"><Inbox />Submission</TabsTrigger>
         <TabsTrigger value="notifications"><Bell />Notifications</TabsTrigger>
-        <TabsTrigger value="integrations"><Plug />Integrations</TabsTrigger>
+        {canIntegrations && <TabsTrigger value="integrations"><Plug />Integrations</TabsTrigger>}
         <TabsTrigger value="appearance"><Paintbrush />Appearance</TabsTrigger>
         <TabsTrigger value="behavior"><Sparkles />Behavior</TabsTrigger>
       </TabsList>
@@ -314,7 +316,7 @@ export function FormSettingsTabs({
         </Card>
       </TabsContent>
 
-      <TabsContent value="integrations" className="space-y-6">
+      {canIntegrations && <TabsContent value="integrations" className="space-y-6">
         <GoogleSheetsPanel formId={form.id} formName={form.name} notice={googleNotice} {...google} />
         <Card>
           <CardHeader>
@@ -329,7 +331,7 @@ export function FormSettingsTabs({
             {saveBar(savePrivate)}
           </CardContent>
         </Card>
-      </TabsContent>
+      </TabsContent>}
 
       <TabsContent value="appearance">
         <Card>

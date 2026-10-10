@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
 
   const session = await getAdminSession();
   if (!session || session.userId !== cookie.userId) return redirectWith(request, "/", "session");
+  if (!session.can("integrations.manage")) return redirectWith(request, "/admin/no-access", "forbidden");
 
   try {
     const tokens = await exchangeAuthorizationCode(code, cookie.verifier);

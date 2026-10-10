@@ -33,15 +33,16 @@ import { ConfirmDialog } from "./confirm-dialog";
 import { QrCodeDialog } from "./qr-code-dialog";
 import { deleteFormAction, duplicateFormAction, setFormStatusAction } from "@/app/admin/(console)/forms/actions";
 import type { FormStatus } from "@/types/forms";
+import type { FormMenuAccess } from "@/lib/auth/permissions";
 
 export function FormActionsMenu({
   form,
   publicUrl,
-  isSuperAdmin,
+  access,
 }: {
   form: { id: string; name: string; slug: string; status: FormStatus };
   publicUrl: string;
-  isSuperAdmin: boolean;
+  access: FormMenuAccess;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -69,45 +70,55 @@ export function FormActionsMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild>
-            <Link href={`/admin/forms/${form.id}`}><Pencil />Edit</Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href={`/admin/forms/${form.id}/builder`}><Wrench />Builder</Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href={`/admin/forms/${form.id}/preview`}><Eye />Preview</Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          {form.status === "draft" && (
-            <DropdownMenuItem onSelect={() => setConfirm("publish")}><Rocket />Publish</DropdownMenuItem>
+          {access.edit && (
+            <>
+              <DropdownMenuItem asChild>
+                <Link href={`/admin/forms/${form.id}`}><Pencil />Edit</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/admin/forms/${form.id}/builder`}><Wrench />Builder</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/admin/forms/${form.id}/preview`}><Eye />Preview</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {form.status === "draft" && (
+                <DropdownMenuItem onSelect={() => setConfirm("publish")}><Rocket />Publish</DropdownMenuItem>
+              )}
+              {published && (
+                <DropdownMenuItem onSelect={() => setConfirm("unpublish")}><Undo2 />Unpublish</DropdownMenuItem>
+              )}
+              {form.status === "archived" && (
+                <DropdownMenuItem onSelect={() => run(() => setFormStatusAction(form.id, "draft"))}><ArchiveRestore />Restore</DropdownMenuItem>
+              )}
+            </>
           )}
-          {published && (
-            <DropdownMenuItem onSelect={() => setConfirm("unpublish")}><Undo2 />Unpublish</DropdownMenuItem>
+          {access.create && (
+            <DropdownMenuItem
+              onSelect={() =>
+                start(async () => {
+                  const res = await duplicateFormAction(form.id);
+                  if (res.ok) {
+                    toast.success(res.message);
+                    router.push(`/admin/forms/${res.data.id}`);
+                  } else toast.error(res.error);
+                })
+              }
+            >
+              <CopyPlus />Duplicate
+            </DropdownMenuItem>
           )}
-          {form.status === "archived" && (
-            <DropdownMenuItem onSelect={() => run(() => setFormStatusAction(form.id, "draft"))}><ArchiveRestore />Restore</DropdownMenuItem>
+          {access.submissions && (
+            <DropdownMenuItem asChild>
+              <Link href={`/admin/submissions?form=${form.id}`}><Inbox />Submissions</Link>
+            </DropdownMenuItem>
           )}
-          <DropdownMenuItem
-            onSelect={() =>
-              start(async () => {
-                const res = await duplicateFormAction(form.id);
-                if (res.ok) {
-                  toast.success(res.message);
-                  router.push(`/admin/forms/${res.data.id}`);
-                } else toast.error(res.error);
-              })
-            }
-          >
-            <CopyPlus />Duplicate
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href={`/admin/submissions?form=${form.id}`}><Inbox />Submissions</Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href={`/admin/forms/${form.id}/settings?tab=integrations`}><Sheet />Google Sheet</Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          {access.integrations && access.edit && (
+            <DropdownMenuItem asChild>
+              <Link href={`/admin/forms/${form.id}/settings?tab=integrations`}><Sheet />Google Sheet</Link>
+            </DropdownMenuItem>
+          )}
+          {(access.edit || access.create || access.submissions) && <DropdownMenuSeparator />}
           <DropdownMenuItem
             disabled={!published}
             onSelect={async () => {
@@ -118,11 +129,16 @@ export function FormActionsMenu({
             <Link2 />Copy Link
           </DropdownMenuItem>
           <DropdownMenuItem disabled={!published} onSelect={() => setQr(true)}><QrCode />QR Code</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          {form.status !== "archived" ? (
-            <DropdownMenuItem variant="destructive" onSelect={() => setConfirm("archive")}><Archive />Archive</DropdownMenuItem>
-          ) : isSuperAdmin ? (
-            <DropdownMenuItem variant="destructive" onSelect={() => setConfirm("delete")}><Trash2 />Delete permanently</DropdownMenuItem>
+          {form.status !== "archived" && access.edit ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onSelect={() => setConfirm("archive")}><Archive />Archive</DropdownMenuItem>
+            </>
+          ) : form.status === "archived" && access.superAdmin ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onSelect={() => setConfirm("delete")}><Trash2 />Delete permanently</DropdownMenuItem>
+            </>
           ) : null}
         </DropdownMenuContent>
       </DropdownMenu>

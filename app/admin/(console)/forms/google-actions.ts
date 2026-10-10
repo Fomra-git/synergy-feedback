@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertFormAccess } from "@/lib/auth/form-access";
-import { requireAdmin, requireSuperAdmin } from "@/lib/auth/session";
+import { requirePermission, requireSuperAdmin } from "@/lib/auth/session";
 import { runAction, UserFacingError, type ActionResult } from "@/lib/actions";
 import { logAudit } from "@/lib/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -32,7 +32,7 @@ function refresh(formId: string) {
 
 export async function attachGoogleAccountAction(formId: string, accountId: string): Promise<ActionResult> {
   return runAction("google.attach", async () => {
-    const { session } = await assertFormAccess(formId);
+    const { session } = await assertFormAccess(formId, "integrations.manage");
     await attachAccountToForm(formId, z.uuid().parse(accountId), session.userId);
     refresh(formId);
     return undefined;
@@ -45,14 +45,14 @@ export async function listSpreadsheetsAction(
   pageToken?: string,
 ): Promise<ActionResult<{ files: SpreadsheetSummary[]; nextPageToken?: string }>> {
   return runAction("google.list", async () => {
-    await assertFormAccess(formId);
+    await assertFormAccess(formId, "integrations.manage");
     return listSpreadsheets(formId, String(query ?? "").slice(0, 100), pageToken);
   });
 }
 
 export async function getSpreadsheetAction(formId: string, idOrUrl: string): Promise<ActionResult<SpreadsheetInfo>> {
   return runAction("google.get", async () => {
-    await assertFormAccess(formId);
+    await assertFormAccess(formId, "integrations.manage");
     return getSpreadsheetDetails(formId, String(idOrUrl).slice(0, 500));
   });
 }
@@ -66,7 +66,7 @@ const connectSchema = z.object({
 
 export async function connectExistingSheetAction(formId: string, input: z.input<typeof connectSchema>): Promise<ActionResult<{ queued: number }>> {
   return runAction("google.connectExisting", async () => {
-    const { session } = await assertFormAccess(formId);
+    const { session } = await assertFormAccess(formId, "integrations.manage");
     const data = connectSchema.parse(input);
     const res = await connectExistingSpreadsheet(formId, data);
     await logAudit({
@@ -84,7 +84,7 @@ export async function connectExistingSheetAction(formId: string, input: z.input<
 
 export async function createSheetAction(formId: string, input: { title?: string; backfill: boolean }): Promise<ActionResult<{ queued: number; url: string }>> {
   return runAction("google.create", async () => {
-    const { session } = await assertFormAccess(formId);
+    const { session } = await assertFormAccess(formId, "integrations.manage");
     const title = z.string().trim().max(200).optional().parse(input.title);
     const res = await createSpreadsheetForForm(formId, { title, backfill: Boolean(input.backfill) });
     await logAudit({
@@ -102,7 +102,7 @@ export async function createSheetAction(formId: string, input: { title?: string;
 
 export async function testSheetConnectionAction(formId: string): Promise<ActionResult<ConnectionTestResult>> {
   return runAction("google.test", async () => {
-    await assertFormAccess(formId);
+    await assertFormAccess(formId, "integrations.manage");
     const res = await testConnection(formId);
     refresh(formId);
     return res;
@@ -113,7 +113,7 @@ export async function disconnectSheetAction(formId: string): Promise<ActionResul
   return runAction(
     "google.disconnect",
     async () => {
-      const { session } = await assertFormAccess(formId);
+      const { session } = await assertFormAccess(formId, "integrations.manage");
       await disconnectSheet(formId);
       await logAudit({ userId: session.userId, action: "google_sheet.disconnected", entityType: "form", entityId: formId });
       refresh(formId);
@@ -125,7 +125,7 @@ export async function disconnectSheetAction(formId: string): Promise<ActionResul
 
 export async function setSheetEnabledAction(formId: string, enabled: boolean): Promise<ActionResult> {
   return runAction("google.enable", async () => {
-    await assertFormAccess(formId);
+    await assertFormAccess(formId, "integrations.manage");
     await setSheetEnabled(formId, Boolean(enabled));
     refresh(formId);
     return undefined;
@@ -136,7 +136,7 @@ export async function updateSheetMappingAction(formId: string, headers: Record<s
   return runAction(
     "google.mapping",
     async () => {
-      const { session } = await assertFormAccess(formId);
+      const { session } = await assertFormAccess(formId, "integrations.manage");
       const parsed = z.record(z.string().max(80), z.string().max(200)).parse(headers);
       await updateColumnHeaders(formId, parsed);
       await logAudit({ userId: session.userId, action: "google_sheet.mapping_updated", entityType: "form", entityId: formId });
@@ -150,8 +150,8 @@ export async function updateSheetMappingAction(formId: string, headers: Record<s
 /** Retries failed syncs for one form (or a single submission) and processes them now. */
 export async function retrySyncAction(input: { formId?: string; submissionId?: string }): Promise<ActionResult<{ queued: number; synced: number; failed: number }>> {
   return runAction("google.retry", async () => {
-    if (input.formId) await assertFormAccess(input.formId);
-    else await requireAdmin();
+    if (input.formId) await assertFormAccess(input.formId, "integrations.manage");
+    else await requirePermission("integrations.manage");
 
     if (input.submissionId) {
       // Authorise via RLS: the admin must be able to read the submission.

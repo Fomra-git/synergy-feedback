@@ -41,9 +41,9 @@ export async function signInAction(_prev: AuthState, formData: FormData): Promis
   if (error || !data.user) return { error: "Invalid email or password.", email };
 
   const { data: profile } = await supabase.from("profiles").select("role, is_active").eq("id", data.user.id).maybeSingle();
-  if (!profile?.is_active || (profile.role !== "admin" && profile.role !== "super_admin")) {
+  if (!profile?.is_active) {
     await supabase.auth.signOut();
-    return { error: "Your account is not yet activated. Please contact a super admin.", email };
+    return { error: "Your account is not active. Please contact an admin.", email };
   }
 
   redirect(safeAdminPath(parsed.data.next, "/admin/dashboard"));

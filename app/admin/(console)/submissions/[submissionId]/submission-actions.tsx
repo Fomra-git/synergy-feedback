@@ -9,14 +9,14 @@ import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { deleteSubmissionAction, setSubmissionsArchivedAction } from "../actions";
 import { retrySyncAction } from "../../forms/google-actions";
 
-export function SubmissionActions({ id, archived, isSuperAdmin }: { id: string; archived: boolean; isSuperAdmin: boolean }) {
+export function SubmissionActions({ id, archived, isSuperAdmin, canManage }: { id: string; archived: boolean; isSuperAdmin: boolean; canManage: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [confirm, setConfirm] = useState<"archive" | "delete" | null>(null);
 
   return (
     <div className="flex gap-2">
-      {archived ? (
+      {!canManage ? null : archived ? (
         <Button
           variant="outline"
           size="sm"

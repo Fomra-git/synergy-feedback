@@ -33,6 +33,7 @@ interface ExportRow {
 export async function GET(request: NextRequest) {
   const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session.can("submissions.export")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const sp = Object.fromEntries(request.nextUrl.searchParams.entries());
   const filters = parseSubmissionFilters(sp);

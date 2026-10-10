@@ -27,7 +27,7 @@ function syncOf(r: SubmissionListRow) {
   return Array.isArray(r.google_sheet_sync_logs) ? r.google_sheet_sync_logs[0] : r.google_sheet_sync_logs;
 }
 
-export function SubmissionsTable({ rows, timeZone, archivedView }: { rows: SubmissionListRow[]; timeZone: string; archivedView: boolean; isSuperAdmin: boolean }) {
+export function SubmissionsTable({ rows, timeZone, archivedView, canManage }: { rows: SubmissionListRow[]; timeZone: string; archivedView: boolean; canManage: boolean }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, start] = useTransition();
@@ -45,7 +45,7 @@ export function SubmissionsTable({ rows, timeZone, archivedView }: { rows: Submi
 
   return (
     <>
-      {selected.size > 0 && (
+      {canManage && selected.size > 0 && (
         <div className="flex items-center gap-3 border-b bg-accent/60 px-4 py-2 text-sm">
           <span className="font-medium">{selected.size} selected</span>
           <Button size="sm" variant="outline" onClick={bulk} disabled={pending}>

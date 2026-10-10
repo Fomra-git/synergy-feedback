@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdmin } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/session";
 import { assertFormAccess } from "@/lib/auth/form-access";
 import { check, runAction, UserFacingError, type ActionResult } from "@/lib/actions";
 import { logAudit } from "@/lib/audit";
@@ -30,7 +30,7 @@ function revalidateForm(formId?: string, slug?: string) {
 
 export async function createFormAction(input: z.input<typeof formCreateSchema>): Promise<ActionResult<{ id: string }>> {
   const result = await runAction("createForm", async () => {
-    const session = await requireAdmin();
+    const session = await requirePermission("forms.create");
     const data = formCreateSchema.parse(input);
     const slug = data.slug ? data.slug : await uniqueSlug(data.name);
     if (data.slug && !(await isSlugAvailable(slug))) throw new UserFacingError("That URL slug is already taken.");
@@ -150,7 +150,7 @@ export async function duplicateFormAction(formId: string): Promise<ActionResult<
   return runAction(
     "duplicateForm",
     async () => {
-      const { session, form } = await assertFormAccess(formId);
+      const { session, form } = await assertFormAccess(formId, "forms.create");
       const name = `${form.name} (Copy)`.slice(0, 150);
       const slug = await uniqueSlug(`${form.slug}-copy`);
       const supabase = await createClient();

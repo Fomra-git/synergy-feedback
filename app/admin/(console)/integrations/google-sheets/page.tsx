@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdminPage } from "@/lib/auth/session";
+import { requirePermissionPage } from "@/lib/auth/session";
 import { env, isGoogleConfigured } from "@/lib/env";
 import { googleScopes } from "@/lib/google/oauth";
 import { formatDateTime } from "@/lib/forms/format";
@@ -20,7 +20,7 @@ import { GoogleNoticeToast } from "./notice";
 export const metadata: Metadata = { title: "Google Sheets" };
 
 export default async function GoogleSheetsIntegrationPage(props: PageProps<"/admin/integrations/google-sheets">) {
-  const session = await requireAdminPage();
+  const session = await requirePermissionPage("integrations.manage");
   const sp = await props.searchParams;
   const supabase = await createClient();
   const [{ data: accounts }, { data: connections }] = await Promise.all([

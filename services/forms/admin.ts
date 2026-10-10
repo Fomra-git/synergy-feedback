@@ -3,6 +3,17 @@ import { createClient } from "@/lib/supabase/server";
 import type { BranchRow, FormFieldRow, FormRow, FormSettingsRow, SheetConnectionRow } from "@/types/db";
 import { rowToField } from "./mappers";
 import { zonedDayStart } from "@/services/submissions/query";
+import { getAdminSession } from "@/lib/auth/session";
+
+/**
+ * Branch ids the signed-in user is limited to, or null for all branches.
+ * Needed on top of RLS because published forms are publicly readable, so
+ * without this a branch-limited user would see other branches' live forms.
+ */
+async function branchScope(): Promise<string[] | null> {
+  const session = await getAdminSession();
+  return session && session.branchIds.length ? session.branchIds : null;
+}
 
 export interface FormListItem extends FormRow {
   branch: { id: string; name: string } | null;
@@ -34,6 +45,8 @@ export async function listForms(filters: {
     query = query.neq("status", "archived");
   }
   if (filters.branch) query = query.eq("branch_id", filters.branch);
+  const scope = await branchScope();
+  if (scope) query = query.in("branch_id", scope);
   if (filters.q) query = query.ilike("name", `%${filters.q.replace(/[%_\\]/g, (c) => `\\${c}`)}%`);
 
   const { data, count, error } = await query;
@@ -85,7 +98,10 @@ export async function listBranchOptions(): Promise<Pick<BranchRow, "id" | "name"
 
 export async function listFormOptions(): Promise<{ id: string; name: string }[]> {
   const supabase = await createClient();
-  const { data } = await supabase.from("forms").select("id, name").order("name");
+  let query = supabase.from("forms").select("id, name").order("name");
+  const scope = await branchScope();
+  if (scope) query = query.in("branch_id", scope);
+  const { data } = await query;
   return (data ?? []) as { id: string; name: string }[];
 }
 
@@ -101,11 +117,14 @@ export interface DashboardFormItem extends Pick<FormRow, "id" | "name" | "slug" 
  */
 export async function listDashboardForms(today: string, timeZone: string): Promise<DashboardFormItem[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("forms")
     .select("id, name, slug, status, branch:branches(name)")
     .neq("status", "archived")
     .order("name");
+  const scope = await branchScope();
+  if (scope) query = query.in("branch_id", scope);
+  const { data, error } = await query;
   if (error) throw error;
   const rows = (data ?? []) as unknown as Omit<DashboardFormItem, "total" | "today">[];
   if (!rows.length) return [];

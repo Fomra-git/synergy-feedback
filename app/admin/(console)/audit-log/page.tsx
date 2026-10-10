@@ -1,3 +1,4 @@
+import { requireAdminRolePage } from "@/lib/auth/session";
 import type { Metadata } from "next";
 import { ScrollText } from "lucide-react";
 import { PageHeader } from "@/components/admin/page-header";
@@ -14,6 +15,7 @@ export const metadata: Metadata = { title: "Audit Log" };
 const PAGE = 50;
 
 export default async function AuditLogPage(props: PageProps<"/admin/audit-log">) {
+  await requireAdminRolePage();
   const sp = await props.searchParams;
   const page = Math.max(1, Number(typeof sp.page === "string" ? sp.page : 1) || 1);
   const supabase = await createClient();

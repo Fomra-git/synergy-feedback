@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAppSettings } from "@/services/settings";
 import { env, isGoogleConfigured } from "@/lib/env";
 import { FormSettingsTabs } from "./settings-tabs";
+import { requireAdminPage } from "@/lib/auth/session";
 import type { SyncStatus } from "@/types/db";
 
 export const metadata: Metadata = { title: "Form Settings" };
@@ -15,6 +16,8 @@ const TABS = ["general", "submission", "notifications", "integrations", "appeara
 export default async function FormSettingsPage(props: PageProps<"/admin/forms/[formId]/settings">) {
   const { formId } = await props.params;
   const sp = await props.searchParams;
+  const session = await requireAdminPage();
+  const canIntegrations = session.can("integrations.manage");
   const data = await getFormForAdmin(formId);
   if (!data) notFound();
 
@@ -29,11 +32,12 @@ export default async function FormSettingsPage(props: PageProps<"/admin/forms/[f
   for (const l of (logs ?? []) as { status: SyncStatus }[]) syncCounts[l.status]++;
 
   const tabParam = typeof sp.tab === "string" ? sp.tab : "general";
-  const tab = (TABS as readonly string[]).includes(tabParam) ? tabParam : "general";
+  const tab = (TABS as readonly string[]).includes(tabParam) && (canIntegrations || tabParam !== "integrations") ? tabParam : "general";
 
   return (
     <FormSettingsTabs
       initialTab={tab}
+      canIntegrations={canIntegrations}
       googleNotice={typeof sp.google === "string" ? sp.google : null}
       form={{ id: data.form.id, name: data.form.name, slug: data.form.slug, description: data.form.description, settings: data.form.settings ?? {} }}
       globalAppearance={appSettings.branding.formDefaults}

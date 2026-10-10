@@ -12,12 +12,14 @@ import { getTimeseries } from "@/services/analytics";
 import { formatNumber } from "@/lib/utils";
 import type { BranchRow, FormRow } from "@/types/db";
 import { BranchFormDialog } from "../branch-form-dialog";
+import { requireAdminPage } from "@/lib/auth/session";
 import { BranchStatusButtons } from "../branch-status-button";
 
 export const metadata: Metadata = { title: "Branch" };
 
 export default async function BranchPage(props: PageProps<"/admin/branches/[branchId]">) {
   const { branchId } = await props.params;
+  const session = await requireAdminPage();
   if (!/^[0-9a-f-]{36}$/i.test(branchId)) notFound();
   const supabase = await createClient();
   const { data: branch } = await supabase.from("branches").select("*").eq("id", branchId).maybeSingle<BranchRow>();
@@ -43,7 +45,7 @@ export default async function BranchPage(props: PageProps<"/admin/branches/[bran
             {branch.archived_at && <Badge variant="warning">Archived</Badge>}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        {session.can("branches.manage") && <div className="flex flex-wrap gap-2">
           <BranchFormDialog
             trigger="icon"
             branch={{
@@ -58,7 +60,7 @@ export default async function BranchPage(props: PageProps<"/admin/branches/[bran
             }}
           />
           {!branch.archived_at && <BranchStatusButtons id={branch.id} status={branch.status} name={branch.name} />}
-        </div>
+        </div>}
       </div>
       <div className="grid gap-6 lg:grid-cols-3">
         <Card>

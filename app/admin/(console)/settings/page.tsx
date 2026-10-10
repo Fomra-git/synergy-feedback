@@ -3,14 +3,14 @@ import { CheckCircle2, XCircle } from "lucide-react";
 import { PageHeader } from "@/components/admin/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdminPage } from "@/lib/auth/session";
-import { createClient } from "@/lib/supabase/server";
 import { env, isCaptchaConfigured, isEmailConfigured, isGoogleConfigured } from "@/lib/env";
 import { googleScopes } from "@/lib/google/oauth";
 import { getAppSettings } from "@/services/settings";
 import { listBranchOptions } from "@/services/forms/admin";
-import type { ProfileRow } from "@/types/db";
 import { AppSettingsForm } from "./app-settings-form";
-import { ProfileForm, TeamTable } from "./team";
+import { ProfileForm } from "./team";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -27,27 +27,23 @@ function Status({ ok, label }: { ok: boolean; label: string }) {
 export default async function SettingsPage() {
   const session = await requireAdminPage();
   const [settings, branches] = await Promise.all([getAppSettings(), listBranchOptions()]);
-  const supabase = await createClient();
-  const { data: team } = session.isSuperAdmin
-    ? await supabase.from("profiles").select("*").order("created_at").returns<ProfileRow[]>()
-    : { data: null };
 
   return (
     <>
       <PageHeader title="Settings" description="Organisation, branding, email, integrations and security." />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <AppSettingsForm initial={settings} canEdit={session.isSuperAdmin} branches={branches} emailConfigured={isEmailConfigured()} />
-          {session.isSuperAdmin && team && (
+          {session.isAdmin && <AppSettingsForm initial={settings} canEdit={session.isSuperAdmin} branches={branches} emailConfigured={isEmailConfigured()} />}
+          {session.isAdmin && (
             <Card>
               <CardHeader>
                 <CardTitle>Team</CardTitle>
-                <CardDescription>
-                  Invite staff from Supabase Dashboard → Authentication → Users. New accounts are inactive until activated here.
-                </CardDescription>
+                <CardDescription>Add admins and staff and set their branch and feature access.</CardDescription>
               </CardHeader>
-              <CardContent className="px-0 sm:px-0">
-                <TeamTable team={team} currentUserId={session.userId} />
+              <CardContent>
+                <Button asChild variant="outline">
+                  <Link href="/admin/users">Manage users</Link>
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -62,7 +58,7 @@ export default async function SettingsPage() {
               <ProfileForm fullName={session.profile.full_name ?? ""} />
             </CardContent>
           </Card>
-          <Card>
+          {session.isAdmin && <Card>
             <CardHeader>
               <CardTitle>Server configuration</CardTitle>
               <CardDescription>Secrets are environment variables and never shown here.</CardDescription>
@@ -85,7 +81,7 @@ export default async function SettingsPage() {
                 <p>Managed by Supabase Auth (httpOnly, Secure cookies). Configure JWT expiry and refresh-token rotation in Supabase → Authentication → Sessions.</p>
               </div>
             </CardContent>
-          </Card>
+          </Card>}
         </div>
       </div>
     </>

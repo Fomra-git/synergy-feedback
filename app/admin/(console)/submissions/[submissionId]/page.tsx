@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { SyncStatusBadge } from "@/components/admin/status-badges";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdminPage } from "@/lib/auth/session";
+import { requirePermissionPage } from "@/lib/auth/session";
 import { formatDateTime, storedAnswerText } from "@/lib/forms/format";
 import { env } from "@/lib/env";
 import type { AnswerRow, FormFieldRow, SyncLogRow } from "@/types/db";
@@ -52,7 +52,7 @@ function AnswerValue({ answer, max }: { answer: AnswerRow; max?: number }) {
 }
 
 export default async function SubmissionDetailPage(props: PageProps<"/admin/submissions/[submissionId]">) {
-  const session = await requireAdminPage();
+  const session = await requirePermissionPage("submissions.view");
   const { submissionId } = await props.params;
   if (!/^[0-9a-f-]{36}$/i.test(submissionId)) notFound();
   const supabase = await createClient();
@@ -83,7 +83,7 @@ export default async function SubmissionDetailPage(props: PageProps<"/admin/subm
           <h1 className="font-mono text-xl font-semibold sm:text-2xl">Submission #{sub.submission_number}</h1>
           {sub.status === "archived" && <p className="mt-1 text-sm text-amber-700">This submission is archived.</p>}
         </div>
-        <SubmissionActions id={sub.id} archived={sub.status === "archived"} isSuperAdmin={session.isSuperAdmin} />
+        <SubmissionActions id={sub.id} archived={sub.status === "archived"} isSuperAdmin={session.isSuperAdmin} canManage={session.can("submissions.manage")} />
       </div>
 
       <Card>
@@ -143,7 +143,7 @@ export default async function SubmissionDetailPage(props: PageProps<"/admin/subm
           ) : (
             <p className="text-muted-foreground">No Google Sheet was connected when this submission was received.</p>
           )}
-          <RetrySyncButton id={sub.id} show={!log || log.status !== "synced"} />
+          <RetrySyncButton id={sub.id} show={session.can("integrations.manage") && (!log || log.status !== "synced")} />
         </CardContent>
       </Card>
     </div>

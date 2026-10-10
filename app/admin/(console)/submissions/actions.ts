@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdmin } from "@/lib/auth/session";
+import { requireAdmin, requirePermission } from "@/lib/auth/session";
 import { check, runAction, UserFacingError, type ActionResult } from "@/lib/actions";
 import { logAudit } from "@/lib/audit";
 
@@ -13,7 +13,7 @@ export async function setSubmissionsArchivedAction(ids: string[], archived: bool
   return runAction(
     "archiveSubmissions",
     async () => {
-      const session = await requireAdmin();
+      const session = await requirePermission("submissions.manage");
       const list = idsSchema.parse(ids);
       const supabase = await createClient();
       const rows = check(

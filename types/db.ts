@@ -18,6 +18,8 @@ export interface ProfileRow {
   full_name: string | null;
   role: UserRole;
   is_active: boolean;
+  /** Staff permission keys (admins implicitly hold all). */
+  permissions: string[];
   created_at: string;
   updated_at: string;
 }

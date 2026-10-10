@@ -1,3 +1,4 @@
+import { requirePermissionPage } from "@/lib/auth/session";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/admin/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,6 +8,7 @@ import { CreateFormForm } from "./create-form";
 export const metadata: Metadata = { title: "Create Form" };
 
 export default async function NewFormPage() {
+  await requirePermissionPage("forms.create");
   const branches = await listBranchOptions();
   return (
     <div className="mx-auto max-w-2xl">
