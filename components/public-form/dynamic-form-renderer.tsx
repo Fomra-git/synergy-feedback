@@ -10,6 +10,7 @@ import { initialValues, splitIntoSteps, validateAnswers } from "@/lib/forms/vali
 import { cn, readableTextColor } from "@/lib/utils";
 import type { AnswerMap, FormField, FormPublicSettings } from "@/types/forms";
 import { Turnstile } from "./turnstile";
+import { LogoMark } from "@/components/brand/logo";
 
 export interface RendererForm {
   slug: string;
@@ -174,12 +175,7 @@ export function DynamicFormRenderer({
             <img src={logoUrl} alt={orgName ?? "Logo"} className="mb-5 h-20 w-auto max-w-[260px] object-contain sm:h-24 sm:max-w-[320px]" />
           ) : (
             <div className="mb-5 flex items-center gap-3 text-base font-semibold tracking-wide text-slate-700 uppercase sm:text-lg">
-              <svg viewBox="0 0 40 40" className="size-12 sm:size-14" aria-hidden>
-                <rect width="40" height="40" rx="10" fill={accent} />
-                <circle cx="20" cy="11" r="3.4" fill="#fff" />
-                <path d="M10.5 27.5c3.2-6.4 7.2-9.6 12-9.6 2.6 0 4.8.8 6.9 2.4" stroke="#fff" strokeWidth="3" strokeLinecap="round" fill="none" />
-                <path d="M29.5 21.5c-2.6 5.8-6.4 8.7-11.3 8.7-2.3 0-4.3-.6-6.2-1.8" stroke="#ffffffaa" strokeWidth="3" strokeLinecap="round" fill="none" />
-              </svg>
+              <LogoMark className="size-12 sm:size-14" />
               {orgName ?? "Synergy Wellness"}
             </div>
           )}
