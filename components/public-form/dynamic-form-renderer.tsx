@@ -166,7 +166,7 @@ export function DynamicFormRenderer({
   } as React.CSSProperties;
 
   return (
-    <div style={style} className={cn("min-h-dvh px-4 py-8 sm:py-12", FONT_CLASS[appearance.font ?? "inter"])}>
+    <div style={style} className={cn("min-h-dvh px-3 py-5 sm:px-4 sm:py-12", FONT_CLASS[appearance.font ?? "inter"])}>
       <div ref={topRef} className="mx-auto w-full max-w-2xl lg:max-w-4xl">
         <header className="mb-6 flex flex-col items-center text-center">
           {logoUrl ? (
@@ -186,7 +186,7 @@ export function DynamicFormRenderer({
         </header>
 
         <main className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_40px_-12px_rgba(15,23,42,0.15)]">
-          <div className="px-6 py-8 text-center font-heading sm:px-10 sm:py-10" style={{ background: headerColor, color: readableTextColor(headerColor) }}>
+          <div className="px-4 py-6 text-center font-heading sm:px-10 sm:py-10" style={{ background: headerColor, color: readableTextColor(headerColor) }}>
             <h1 className="text-[22px] leading-tight font-bold text-balance sm:text-[26px]">{form.name}</h1>
             {form.description && (
               <p id="form-description" className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed whitespace-pre-line opacity-90 sm:text-[15px]">
@@ -226,7 +226,7 @@ export function DynamicFormRenderer({
               <p className="text-slate-600">{closedMessage}</p>
             </div>
           ) : (
-            <form onSubmit={(e) => void handleSubmit(onValid, focusFirstError)(e)} noValidate className="px-5 py-7 sm:px-10 sm:py-10" aria-describedby={form.description ? "form-description" : undefined}>
+            <form onSubmit={(e) => void handleSubmit(onValid, focusFirstError)(e)} noValidate className="px-4 py-6 sm:px-10 sm:py-10" aria-describedby={form.description ? "form-description" : undefined}>
               {showProgress && (
                 <div className="mb-8">
                   <div className="mb-2 flex justify-between text-xs font-medium text-slate-500">
@@ -296,7 +296,7 @@ export function DynamicFormRenderer({
                 </p>
               )}
 
-              <div className="sticky bottom-0 -mx-5 mt-8 flex gap-3 border-t border-slate-100 bg-white/95 px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+              <div className="sticky bottom-0 -mx-4 mt-8 flex gap-3 border-t border-slate-100 bg-white/95 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
                 {step > 0 && (
                   <button
                     type="button"

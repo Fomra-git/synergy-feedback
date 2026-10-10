@@ -11,13 +11,13 @@ const inputBase =
   "block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 sm:text-sm shadow-xs outline-none transition placeholder:text-slate-400 focus:border-[var(--form-accent)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--form-accent)_18%,transparent)] aria-[invalid=true]:border-red-500 disabled:opacity-60";
 
 const optionBase =
-  "flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-800 transition hover:border-slate-400 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-[color-mix(in_srgb,var(--form-accent)_25%,transparent)]";
+  "flex min-h-10 cursor-pointer items-center gap-2.5 rounded-lg border bg-white px-3 py-2 text-sm sm:min-h-11 sm:gap-3 sm:px-4 sm:py-2.5 text-slate-800 transition hover:border-slate-400 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-[color-mix(in_srgb,var(--form-accent)_25%,transparent)]";
 
 const horizontal = (field: FormField) => field.settings.optionsLayout === "horizontal";
 
-/** Vertical: one option per row. Horizontal: options side by side, wrapping on small screens. */
+/** Vertical: one option per row. Horizontal: side by side from the sm breakpoint; phones always stack. */
 function optionsContainer(field: FormField) {
-  return horizontal(field) ? "flex flex-wrap gap-2" : "grid gap-2";
+  return horizontal(field) ? "grid gap-2 sm:flex sm:flex-wrap" : "grid gap-2";
 }
 
 export interface FieldInputProps {
@@ -180,11 +180,11 @@ export function FieldInput(props: FieldInputProps) {
       const opts = field.type === "yes_no" ? ["Yes", "No"] : options;
       return (
         <FieldShell field={field} error={error} group>
-          <div className={cn(field.type === "yes_no" ? "grid grid-cols-2 gap-2 sm:max-w-sm" : optionsContainer(field))}>
+          <div className={cn(field.type === "yes_no" ? "grid gap-2 sm:max-w-sm sm:grid-cols-2" : optionsContainer(field))}>
             {opts.map((o) => {
               const checked = value === o;
               return (
-                <label key={o} className={cn(optionBase, horizontal(field) && "w-auto", checked && "border-[var(--form-accent)] bg-[color-mix(in_srgb,var(--form-accent)_6%,white)]")}>
+                <label key={o} className={cn(optionBase, horizontal(field) && "sm:w-auto", checked && "border-[var(--form-accent)] bg-[color-mix(in_srgb,var(--form-accent)_6%,white)]")}>
                   <input
                     type="radio"
                     name={field.field_id}
@@ -240,7 +240,7 @@ export function FieldInput(props: FieldInputProps) {
             {options.map((o) => {
               const on = selected.includes(o);
               return (
-                <label key={o} className={cn(optionBase, horizontal(field) && "w-auto", on && "border-[var(--form-accent)] bg-[color-mix(in_srgb,var(--form-accent)_6%,white)]")}>
+                <label key={o} className={cn(optionBase, horizontal(field) && "sm:w-auto", on && "border-[var(--form-accent)] bg-[color-mix(in_srgb,var(--form-accent)_6%,white)]")}>
                   <input type="checkbox" name={field.field_id} value={o} checked={on} disabled={disabled} onChange={() => toggle(o)} className="size-5 shrink-0 rounded accent-[var(--form-accent)]" />
                   <span>{o}</span>
                 </label>
