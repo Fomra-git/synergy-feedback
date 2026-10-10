@@ -22,6 +22,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SyncStatusBadge } from "@/components/admin/status-badges";
 import { EmptyState } from "@/components/admin/empty-state";
+import { FormsOverview } from "@/components/dashboard/forms-overview";
+import { listDashboardForms } from "@/services/forms/admin";
+import { requireAdminPage } from "@/lib/auth/session";
 import { getByBranch, getDashboardStats, getRecentSubmissions, getSyncCounts, getTimeseries } from "@/services/analytics";
 import { formatDateTime } from "@/lib/forms/format";
 import { env } from "@/lib/env";
@@ -30,14 +33,18 @@ import type { SyncStatus } from "@/types/db";
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
-  const [stats, series, byBranch, sync, recent] = await Promise.all([
+  const tz = env.timezone();
+  // Today's date in the clinic timezone (en-CA formats as YYYY-MM-DD).
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
+  const [session, forms, stats, series, byBranch, sync, recent] = await Promise.all([
+    requireAdminPage(),
+    listDashboardForms(today, tz),
     getDashboardStats(),
     getTimeseries(30),
     getByBranch(30),
     getSyncCounts(),
     getRecentSubmissions(8),
   ]);
-  const tz = env.timezone();
 
   return (
     <>
@@ -64,6 +71,8 @@ export default async function DashboardPage() {
           </Button>
         </div>
       )}
+
+      <FormsOverview forms={forms} today={today} isSuperAdmin={session.isSuperAdmin} />
 
       <section aria-label="Key metrics" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         <StatCard label="Total Forms" value={stats.totalForms} icon={FileText} href="/admin/forms" />
