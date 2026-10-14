@@ -13,6 +13,7 @@ import {
   ScrollText,
   Settings,
   Users,
+  FileBarChart2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,7 @@ const NAV = [
   },
   { href: "/admin/submissions", label: "Submissions", icon: Inbox, need: "submissions" as NavKey },
   { href: "/admin/branches", label: "Branches", icon: Building2, need: null as NavKey },
+  { href: "/admin/reports", label: "Reports", icon: FileBarChart2, need: "analytics" as NavKey },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3, need: "analytics" as NavKey },
   { href: "/admin/integrations", label: "Integrations", icon: Plug, need: "integrations" as NavKey },
   { href: "/admin/users", label: "Users", icon: Users, need: "admin" as NavKey },

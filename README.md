@@ -84,6 +84,17 @@ forms, submissions and stats. Branch limits and permissions are enforced by Post
 security as well as in the app. New users either get an invite link (emailed through Resend when it is
 configured, otherwise shown to copy) or a password set by the admin.
 
+### Reports
+
+**Reports** (needs the "View analytics" permission) shows, for a month and for all branches or one
+branch: the average mark, how often each mark was given, the average per branch, and question-wise
+mark counts with the number of customers. Marks come from **radio questions whose options are all
+numbers** ("5", "4" … or "5 - Excellent" … "1 - Poor"); the same question label on different forms is
+combined. On the 1st of each month the previous month's report is emailed (HTML + CSV attachment) to
+**Settings → Email notifications → Recipients for all forms** by the `/api/cron/monthly-report` cron
+(runs daily, sends once during the first week, so a failed day is retried). Admins can also email
+any month on demand.
+
 ### Scripts
 
 | Command | What it does |

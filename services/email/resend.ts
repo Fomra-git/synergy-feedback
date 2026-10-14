@@ -10,6 +10,7 @@ export interface EmailMessage {
   fromName?: string;
   replyTo?: string;
   idempotencyKey?: string;
+  attachments?: { filename: string; content: string; contentType?: string }[];
 }
 
 /** Sends an email through the Resend REST API. Returns false (never throws) on failure. */
@@ -38,6 +39,15 @@ export async function sendEmail(message: EmailMessage): Promise<boolean> {
         html: message.html,
         text: message.text,
         ...(message.replyTo ? { reply_to: message.replyTo } : {}),
+        ...(message.attachments?.length
+          ? {
+              attachments: message.attachments.map((a) => ({
+                filename: a.filename,
+                content: Buffer.from(a.content, "utf8").toString("base64"),
+                ...(a.contentType ? { content_type: a.contentType } : {}),
+              })),
+            }
+          : {}),
       }),
       signal: AbortSignal.timeout(15000),
     });
