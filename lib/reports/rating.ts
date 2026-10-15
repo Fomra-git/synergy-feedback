@@ -153,3 +153,59 @@ export function markColor(score: number, max: number): string {
   const t = Math.min(1, Math.max(0, (score - 1) / (max - 1)));
   return MARK_COLORS[Math.round(t * 4)]!;
 }
+
+/** A report covers one calendar day or one calendar month (clinic timezone). */
+export type ReportPeriod = { kind: "day"; date: string } | { kind: "month"; month: string };
+
+const DAY_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+export function nextDate(date: string): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+export function previousDate(date: string): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Local start of the period and start of the following one ("YYYY-MM-DD"). */
+export function periodBounds(p: ReportPeriod): { start: string; next: string } {
+  return p.kind === "day" ? { start: p.date, next: nextDate(p.date) } : monthBounds(p.month);
+}
+
+export function periodKey(p: ReportPeriod): string {
+  return p.kind === "day" ? p.date : p.month;
+}
+
+export function dayLabel(date: string): string {
+  return new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`));
+}
+
+export function periodLabel(p: ReportPeriod): string {
+  return p.kind === "day" ? dayLabel(p.date) : monthLabel(p.month);
+}
+
+/** URL query for a period (and optional branch). */
+export function periodQuery(p: ReportPeriod, branchId?: string | null): string {
+  const q = new URLSearchParams(p.kind === "day" ? { view: "day", date: p.date } : { view: "month", month: p.month });
+  if (branchId) q.set("branch", branchId);
+  return q.toString();
+}
+
+/**
+ * Reads ?view=day&date=… or ?view=month&month=… Defaults to today; never in the future.
+ */
+export function parsePeriod(sp: Record<string, string | string[] | undefined | null>, today: string): ReportPeriod {
+  const get = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
+  const thisMonth = today.slice(0, 7);
+  if (get("view") === "month" || (!get("view") && get("month"))) {
+    const m = get("month");
+    return { kind: "month", month: m && MONTH_RE.test(m) && m <= thisMonth ? m : thisMonth };
+  }
+  const d = get("date");
+  return { kind: "day", date: d && DAY_RE.test(d) && d <= today ? d : today };
+}

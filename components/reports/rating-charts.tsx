@@ -4,38 +4,38 @@ import { useState } from "react";
 import { formatNumber } from "@/lib/utils";
 import { formatAverage, markColor, type BranchStat, type MarkCount, type QuestionStat } from "@/lib/reports/rating";
 
-/** Legend for the low → high mark colours. Always shown next to coloured marks. */
+/** Legend for the low → high rating colours. Always shown next to coloured marks. */
 export function MarkLegend({ marks, maxScore }: { marks: MarkCount[]; maxScore: number }) {
   return (
-    <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground" aria-label="Mark colours">
+    <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground" aria-label="Rating colours">
       {[...marks].reverse().map((m) => (
         <li key={m.score} className="flex items-center gap-1.5">
           <span className="size-2.5 rounded-sm" style={{ background: markColor(m.score, maxScore) }} aria-hidden />
-          Mark {m.score}
+          Rating {m.score}
         </li>
       ))}
     </ul>
   );
 }
 
-/** One horizontal bar per mark (highest first); count + share at the tip, tooltip on hover. */
+/** One horizontal bar per rating (highest first); count + share at the tip, tooltip on hover. */
 export function MarkDistributionChart({ marks, maxScore }: { marks: MarkCount[]; maxScore: number }) {
   const [hover, setHover] = useState<number | null>(null);
   const total = marks.reduce((s, m) => s + m.count, 0);
   const peak = Math.max(1, ...marks.map((m) => m.count));
   return (
-    <div className="space-y-2" role="list" aria-label="Number of times each mark was given">
+    <div className="space-y-2" role="list" aria-label="Number of times each rating was given">
       {marks.map((m) => {
         const pct = total ? (m.count / total) * 100 : 0;
         return (
           <div
             key={m.score}
             role="listitem"
-            className="relative grid grid-cols-[64px_1fr_96px] items-center gap-3 rounded-md px-1 py-1 hover:bg-muted/60"
+            className="relative grid grid-cols-[72px_1fr_96px] items-center gap-3 rounded-md px-1 py-1 hover:bg-muted/60"
             onMouseEnter={() => setHover(m.score)}
             onMouseLeave={() => setHover(null)}
           >
-            <span className="text-sm font-medium">Mark {m.score}</span>
+            <span className="text-sm font-medium">Rating {m.score}</span>
             <div className="h-5 rounded bg-muted/70">
               <div
                 className="h-5 rounded-r transition-[width]"
@@ -47,7 +47,7 @@ export function MarkDistributionChart({ marks, maxScore }: { marks: MarkCount[];
             </span>
             {hover === m.score && (
               <div role="tooltip" className="pointer-events-none absolute -top-9 left-20 z-10 rounded-md border bg-popover px-2.5 py-1.5 text-xs shadow-md">
-                <span className="font-medium">Mark {m.score}</span>: {formatNumber(m.count)} of {formatNumber(total)} ratings ({pct.toFixed(1)}%)
+                <span className="font-medium">Rating {m.score}</span>: {formatNumber(m.count)} of {formatNumber(total)} ratings ({pct.toFixed(1)}%)
               </div>
             )}
           </div>
@@ -57,12 +57,12 @@ export function MarkDistributionChart({ marks, maxScore }: { marks: MarkCount[];
   );
 }
 
-/** Average mark per branch on a shared 0→max scale; value at the bar tip. */
+/** Average rating per branch on a shared 0→max scale; value at the bar tip. */
 export function BranchAverageChart({ branches, maxScore }: { branches: BranchStat[]; maxScore: number }) {
   const [hover, setHover] = useState<string | null>(null);
   const sorted = [...branches].sort((a, b) => (b.average ?? 0) - (a.average ?? 0));
   return (
-    <div className="space-y-2" role="list" aria-label="Average mark by branch">
+    <div className="space-y-2" role="list" aria-label="Average rating by branch">
       {sorted.map((b) => {
         const key = b.id ?? "none";
         return (
@@ -93,7 +93,7 @@ export function BranchAverageChart({ branches, maxScore }: { branches: BranchSta
   );
 }
 
-/** 100% stacked bar of marks for one question (2px surface gaps between segments). */
+/** 100% stacked bar of ratings for one question (2px surface gaps between segments). */
 export function QuestionMarksBar({ q }: { q: QuestionStat }) {
   const [hover, setHover] = useState<number | null>(null);
   const total = q.customers || 1;
@@ -113,7 +113,7 @@ export function QuestionMarksBar({ q }: { q: QuestionStat }) {
       </div>
       {hover !== null && (
         <div role="tooltip" className="pointer-events-none absolute -top-9 left-0 z-10 whitespace-nowrap rounded-md border bg-popover px-2.5 py-1.5 text-xs shadow-md">
-          Mark {hover}: {formatNumber(q.marks.find((m) => m.score === hover)?.count ?? 0)} customers (
+          Rating {hover}: {formatNumber(q.marks.find((m) => m.score === hover)?.count ?? 0)} customers (
           {Math.round(((q.marks.find((m) => m.score === hover)?.count ?? 0) / total) * 100)}%)
         </div>
       )}

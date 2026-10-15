@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
-import { ClipboardCheck, Download, FileBarChart2, MessageSquareText, Star, Users } from "lucide-react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight, ClipboardCheck, Download, FileBarChart2, MessageSquareText, Star, Users } from "lucide-react";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BranchAverageChart, MarkDistributionChart, MarkLegend, QuestionMarksBar } from "@/components/reports/rating-charts";
 import { requirePermissionPage } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
-import { formatAverage, monthLabel, previousMonth } from "@/lib/reports/rating";
-import { formatNumber } from "@/lib/utils";
+import { formatAverage, monthLabel, nextDate, parsePeriod, periodLabel, periodQuery, previousDate, previousMonth } from "@/lib/reports/rating";
+import { cn, formatNumber } from "@/lib/utils";
 import { listBranchOptions } from "@/services/forms/admin";
-import { currentMonth, loadRatingData, reportFor } from "@/services/reports/rating";
+import { currentDate, loadRatingData, reportFor } from "@/services/reports/rating";
 import { EmailReportButton } from "./email-report-button";
 
 export const metadata: Metadata = { title: "Reports" };
@@ -39,23 +41,27 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
   const session = await requirePermissionPage("analytics.view");
   const sp = await props.searchParams;
   const tz = env.timezone();
-  const thisMonth = currentMonth(tz);
-  const month = typeof sp.month === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(sp.month) && sp.month <= thisMonth ? sp.month : thisMonth;
+  const today = currentDate(tz);
+  const thisMonth = today.slice(0, 7);
+  // Daily report for today by default; switch to Monthly with ?view=month.
+  const period = parsePeriod(sp, today);
   const branches = await listBranchOptions();
   const branchId = typeof sp.branch === "string" && branches.some((b) => b.id === sp.branch) ? sp.branch : null;
   const branchName = branchId ? branches.find((b) => b.id === branchId)!.name : "All branches";
 
-  const data = await loadRatingData(await createClient(), month, tz, branchId);
+  const data = await loadRatingData(await createClient(), period, tz, branchId);
   const report = reportFor(data);
   const months = Array.from({ length: 12 }, (_, i) => i).reduce<string[]>((acc) => [...acc, acc.length ? previousMonth(acc[acc.length - 1]!) : thisMonth], []);
-  const csvHref = `/api/admin/reports/export?month=${month}${branchId ? `&branch=${branchId}` : ""}`;
-  const isCurrent = month === thisMonth;
+  const csvHref = `/api/admin/reports/export?${periodQuery(period, branchId)}`;
+  const isCurrent = period.kind === "day" ? period.date === today : period.month === thisMonth;
+  const viewHref = (view: "day" | "month") =>
+    `/admin/reports?${periodQuery(view === "day" ? { kind: "day", date: today } : { kind: "month", month: thisMonth }, branchId)}`;
 
   return (
     <>
       <PageHeader
         title="Reports"
-        description="Average marks and question-wise marks from rating questions, for all branches or one branch."
+        description="Daily and monthly ratings from your feedback forms, for all branches or one branch."
         actions={
           <>
             <Button asChild variant="outline">
@@ -63,24 +69,48 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
                 <Download /> CSV
               </a>
             </Button>
-            {session.isAdmin && <EmailReportButton month={month} />}
+            {session.isAdmin && <EmailReportButton period={period} />}
           </>
         }
       />
 
+      <nav aria-label="Report type" className="mb-3 inline-flex rounded-lg bg-muted p-1">
+        {(["day", "month"] as const).map((v) => (
+          <Link
+            key={v}
+            href={viewHref(v)}
+            aria-current={period.kind === v ? "page" : undefined}
+            className={cn(
+              "rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors",
+              period.kind === v ? "bg-card text-foreground shadow-sm" : "hover:text-foreground",
+            )}
+          >
+            {v === "day" ? "Daily" : "Monthly"}
+          </Link>
+        ))}
+      </nav>
+
       <Card className="mb-6">
         <form className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end" role="search" aria-label="Report filters">
-          <label className="flex-1 space-y-1.5 text-sm font-medium">
-            Month
-            <NativeSelect name="month" defaultValue={month}>
-              {months.map((m) => (
-                <option key={m} value={m}>
-                  {monthLabel(m)}
-                  {m === thisMonth ? " (this month)" : ""}
-                </option>
-              ))}
-            </NativeSelect>
-          </label>
+          <input type="hidden" name="view" value={period.kind} />
+          {period.kind === "day" ? (
+            <label className="flex-1 space-y-1.5 text-sm font-medium">
+              Date
+              <Input type="date" name="date" defaultValue={period.date} max={today} required />
+            </label>
+          ) : (
+            <label className="flex-1 space-y-1.5 text-sm font-medium">
+              Month
+              <NativeSelect name="month" defaultValue={period.month}>
+                {months.map((m) => (
+                  <option key={m} value={m}>
+                    {monthLabel(m)}
+                    {m === thisMonth ? " (this month)" : ""}
+                  </option>
+                ))}
+              </NativeSelect>
+            </label>
+          )}
           <label className="flex-1 space-y-1.5 text-sm font-medium">
             Branch
             <NativeSelect name="branch" defaultValue={branchId ?? ""}>
@@ -98,13 +128,32 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
         </form>
       </Card>
 
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold">
-          {monthLabel(month)} · {branchName}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {isCurrent ? "Month to date. " : ""}The full report for each month is emailed on the 1st to the &ldquo;Recipients for all forms&rdquo; list.
-        </p>
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold">
+            {period.kind === "day" ? "Daily report" : "Monthly report"} · {periodLabel(period)} · {branchName}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {isCurrent ? (period.kind === "day" ? "Today so far. " : "Month to date. ") : ""}
+            Each month&apos;s full report is also emailed on the 1st to the &ldquo;Recipients for all forms&rdquo; list.
+          </p>
+        </div>
+        {period.kind === "day" && (
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/admin/reports?${periodQuery({ kind: "day", date: previousDate(period.date) }, branchId)}`}>
+                <ChevronLeft /> Previous day
+              </Link>
+            </Button>
+            {period.date < today && (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/admin/reports?${periodQuery({ kind: "day", date: nextDate(period.date) }, branchId)}`}>
+                  Next day <ChevronRight />
+                </Link>
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {report.ratings === 0 ? (
@@ -112,14 +161,14 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
           <EmptyState
             icon={Star}
             title="No ratings for this period"
-            description="Reports use radio questions whose options are numbers, such as 5, 4, 3, 2, 1 (or “5 - Excellent” … “1 - Poor”). Add one to a form, or pick another month."
+            description={`Reports use radio questions whose options are numbers, such as 5, 4, 3, 2, 1 (or “5 - Excellent” … “1 - Poor”). Add one to a form, or pick another ${period.kind === "day" ? "day" : "month"}.`}
           />
         </Card>
       ) : (
         <>
           <section aria-label="Summary" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             <Tile
-              label="Average mark"
+              label="Average rating"
               value={
                 <>
                   {formatAverage(report.average)}
@@ -128,7 +177,7 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
               }
               icon={Star}
             />
-            <Tile label="Ratings given" value={formatNumber(report.ratings)} icon={ClipboardCheck} hint="Answers to rating questions" />
+            <Tile label="Total ratings" value={formatNumber(report.ratings)} icon={ClipboardCheck} hint="Answers to rating questions" />
             <Tile label="Customers" value={formatNumber(report.customers)} icon={Users} hint="Submissions with ratings" />
             <Tile label="Rating questions" value={formatNumber(report.questions.length)} icon={MessageSquareText} />
           </section>
@@ -136,8 +185,8 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <Card className={report.branches.length > 1 ? "" : "lg:col-span-2"}>
               <CardHeader>
-                <CardTitle>Marks given</CardTitle>
-                <CardDescription>How many times each mark was given across all rating questions</CardDescription>
+                <CardTitle>Ratings given</CardTitle>
+                <CardDescription>How many times each rating was given across all rating questions</CardDescription>
               </CardHeader>
               <CardContent>
                 <MarkDistributionChart marks={report.marks} maxScore={report.maxScore} />
@@ -146,8 +195,8 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
             {report.branches.length > 1 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Average by branch</CardTitle>
-                  <CardDescription>Average mark out of {report.maxScore}</CardDescription>
+                  <CardTitle>Average rating by branch</CardTitle>
+                  <CardDescription>Average rating out of {report.maxScore}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <BranchAverageChart branches={report.branches} maxScore={report.maxScore} />
@@ -159,8 +208,8 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
           <Card className="mt-6 overflow-hidden">
             <CardHeader className="gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <CardTitle>Question-wise marks</CardTitle>
-                <CardDescription>Number of customers who gave each mark, per question</CardDescription>
+                <CardTitle>Question-wise ratings</CardTitle>
+                <CardDescription>Number of customers who gave each rating, per question</CardDescription>
               </div>
               <MarkLegend marks={report.marks} maxScore={report.maxScore} />
             </CardHeader>
@@ -169,10 +218,10 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="min-w-[220px]">Question</TableHead>
-                    <TableHead className="min-w-[160px]">Marks</TableHead>
+                    <TableHead className="min-w-[160px]">Ratings</TableHead>
                     {report.marks.map((m) => (
                       <TableHead key={m.score} className="text-right">
-                        {m.score}
+                        Rating {m.score}
                       </TableHead>
                     ))}
                     <TableHead className="text-right">Customers</TableHead>
@@ -215,7 +264,7 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
             <Card className="mt-6 overflow-hidden">
               <CardHeader>
                 <CardTitle>Branch-wise comparison</CardTitle>
-                <CardDescription>Average mark per question for each branch. Pick a branch above for its full report.</CardDescription>
+                <CardDescription>Average rating per question for each branch. Pick a branch above for its full report.</CardDescription>
               </CardHeader>
               <CardContent className="px-0 sm:px-0">
                 <Table>
@@ -236,7 +285,7 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
                       <TableRow key={b.id ?? "none"}>
                         <TableCell className="font-medium">
                           {b.id ? (
-                            <a className="hover:text-primary hover:underline" href={`/admin/reports?month=${month}&branch=${b.id}`}>
+                            <a className="hover:text-primary hover:underline" href={`/admin/reports?${periodQuery(period, b.id)}`}>
                               {b.name}
                             </a>
                           ) : (

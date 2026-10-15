@@ -86,14 +86,14 @@ configured, otherwise shown to copy) or a password set by the admin.
 
 ### Reports
 
-**Reports** (needs the "View analytics" permission) shows, for a month and for all branches or one
-branch: the average mark, how often each mark was given, the average per branch, and question-wise
-mark counts with the number of customers. Marks come from **radio questions whose options are all
+**Reports** (needs the "View analytics" permission) opens on **today's daily report** and switches to
+**Monthly**. For the chosen day or month, and all branches or one branch, it shows the average rating,
+how often each rating was given, the average per branch, and question-wise rating counts with the
+number of customers. Admins can download the CSV or email the daily or monthly report on demand. Ratings come from **radio questions whose options are all
 numbers** ("5", "4" … or "5 - Excellent" … "1 - Poor"); the same question label on different forms is
 combined. On the 1st of each month the previous month's report is emailed (HTML + CSV attachment) to
 **Settings → Email notifications → Recipients for all forms** by the `/api/cron/monthly-report` cron
-(runs daily, sends once during the first week, so a failed day is retried). Admins can also email
-any month on demand.
+(runs daily, sends once during the first week, so a failed day is retried).
 
 ### Scripts
 

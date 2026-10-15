@@ -5,8 +5,9 @@ import { Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { emailReportNowAction } from "./actions";
+import type { ReportPeriod } from "@/lib/reports/rating";
 
-export function EmailReportButton({ month }: { month: string }) {
+export function EmailReportButton({ period }: { period: ReportPeriod }) {
   const [pending, start] = useTransition();
   return (
     <Button
@@ -14,7 +15,7 @@ export function EmailReportButton({ month }: { month: string }) {
       disabled={pending}
       onClick={() =>
         start(async () => {
-          const res = await emailReportNowAction(month);
+          const res = await emailReportNowAction(period);
           if (res.ok) toast.success(res.message);
           else toast.error(res.error);
         })

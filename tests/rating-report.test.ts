@@ -54,3 +54,27 @@ describe("month helpers and colours", () => {
     expect(markColor(10, 10)).toBe("#1d5fb6");
   });
 });
+
+import { parsePeriod, periodBounds, periodLabel, periodQuery } from "@/lib/reports/rating";
+
+describe("report periods", () => {
+  const today = "2026-10-15";
+  it("defaults to today's daily report", () => {
+    expect(parsePeriod({}, today)).toEqual({ kind: "day", date: today });
+  });
+  it("reads days and months, rejecting the future and junk", () => {
+    expect(parsePeriod({ view: "day", date: "2026-10-03" }, today)).toEqual({ kind: "day", date: "2026-10-03" });
+    expect(parsePeriod({ view: "day", date: "2026-10-16" }, today)).toEqual({ kind: "day", date: today });
+    expect(parsePeriod({ view: "month", month: "2026-09" }, today)).toEqual({ kind: "month", month: "2026-09" });
+    expect(parsePeriod({ view: "month", month: "2026-11" }, today)).toEqual({ kind: "month", month: "2026-10" });
+    expect(parsePeriod({ month: "2026-08" }, today)).toEqual({ kind: "month", month: "2026-08" });
+  });
+  it("bounds a day across month ends", () => {
+    expect(periodBounds({ kind: "day", date: "2026-10-31" })).toEqual({ start: "2026-10-31", next: "2026-11-01" });
+  });
+  it("labels and links periods", () => {
+    expect(periodLabel({ kind: "month", month: "2026-10" })).toBe("October 2026");
+    expect(periodLabel({ kind: "day", date: "2026-10-15" })).toContain("15 October 2026");
+    expect(periodQuery({ kind: "day", date: "2026-10-15" }, "b1")).toBe("view=day&date=2026-10-15&branch=b1");
+  });
+});

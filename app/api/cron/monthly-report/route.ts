@@ -4,7 +4,7 @@ import { safeEqual } from "@/lib/security/crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { previousMonth } from "@/lib/reports/rating";
 import { currentMonth } from "@/services/reports/rating";
-import { sendMonthlyReport } from "@/services/reports/monthly-email";
+import { sendRatingReport } from "@/services/reports/monthly-email";
 import { logError, logInfo } from "@/lib/logger";
 
 export const runtime = "nodejs";
@@ -38,7 +38,7 @@ async function handle(request: Request) {
   if (already?.length) return NextResponse.json({ ok: true, skipped: "already_sent", month });
 
   try {
-    const result = await sendMonthlyReport(month, { idempotencyKey: `monthly-report-${month}` });
+    const result = await sendRatingReport({ kind: "month", month }, { idempotencyKey: `monthly-report-${month}` });
     logInfo("report.monthly", { month, ...result });
     return NextResponse.json({ ok: true, month, ...result });
   } catch (err) {

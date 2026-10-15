@@ -29,7 +29,8 @@ export type AuditAction =
   | "user.created"
   | "user.invite_link_created"
   | "user.reset_link_created"
-  | "report.monthly_sent";
+  | "report.monthly_sent"
+  | "report.sent";
 
 /** Append-only audit trail. Failures are logged but never break the user action. */
 export async function logAudit(entry: {

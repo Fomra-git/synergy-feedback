@@ -6,7 +6,7 @@ import { escapeHtml } from "@/services/email/notifications";
 import { sendEmail } from "@/services/email/resend";
 import { getAppSettings } from "@/services/settings";
 import { ratingReportCsv } from "@/lib/reports/csv";
-import { formatAverage, markColor, monthLabel, type RatingReport } from "@/lib/reports/rating";
+import { formatAverage, markColor, periodKey, periodLabel, periodQuery, type RatingReport, type ReportPeriod } from "@/lib/reports/rating";
 import { loadRatingData, reportFor } from "./rating";
 
 const cell = "padding:6px 8px;border-top:1px solid #e2e8f0;font-size:13px;color:#0f172a";
@@ -23,13 +23,13 @@ function marksTable(r: RatingReport) {
   return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${r.marks
     .map(
       (m) =>
-        `<tr><td style="${cell};width:70px;font-weight:600">Mark ${m.score}</td><td style="${cell}">${bar((m.count / total) * 100, markColor(m.score, r.maxScore))}</td><td style="${cell};width:110px;text-align:right">${m.count} (${Math.round((m.count / total) * 100)}%)</td></tr>`,
+        `<tr><td style="${cell};width:80px;font-weight:600">Rating ${m.score}</td><td style="${cell}">${bar((m.count / total) * 100, markColor(m.score, r.maxScore))}</td><td style="${cell};width:110px;text-align:right">${m.count} (${Math.round((m.count / total) * 100)}%)</td></tr>`,
     )
     .join("")}</table>`;
 }
 
 function questionsTable(r: RatingReport) {
-  if (!r.questions.length) return `<p style="color:#64748b;font-size:13px">No rating answers in this period.</p>`;
+  if (!r.questions.length) return `<p style="color:#64748b;font-size:13px">No ratings in this period.</p>`;
   const cols = r.marks.map((m) => m.score);
   return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr><th style="${head}">Question</th><th style="${head};text-align:right">Avg</th>${cols
     .map((c) => `<th style="${head};text-align:right">${c}</th>`)
@@ -46,7 +46,7 @@ function questionsTable(r: RatingReport) {
 function summary(r: RatingReport) {
   const tile = (label: string, value: string) =>
     `<td style="padding:12px;border:1px solid #e2e8f0;border-radius:8px;width:33%"><div style="font-size:12px;color:#64748b">${label}</div><div style="font-size:22px;font-weight:700;color:#0f172a;margin-top:2px">${value}</div></td>`;
-  return `<table width="100%" cellpadding="0" cellspacing="6" style="border-collapse:separate"><tr>${tile("Average mark", `${formatAverage(r.average)} <span style="font-size:13px;color:#64748b">/ ${r.maxScore}</span>`)}${tile("Ratings given", String(r.ratings))}${tile("Customers", String(r.customers))}</tr></table>`;
+  return `<table width="100%" cellpadding="0" cellspacing="6" style="border-collapse:separate"><tr>${tile("Average rating", `${formatAverage(r.average)} <span style="font-size:13px;color:#64748b">/ ${r.maxScore}</span>`)}${tile("Total ratings", String(r.ratings))}${tile("Customers", String(r.customers))}</tr></table>`;
 }
 
 function branchTable(r: RatingReport) {
@@ -66,30 +66,31 @@ export interface MonthlyReportEmail {
   csv: string;
 }
 
-export function buildMonthlyReportEmail(month: string, orgName: string, all: RatingReport, branches: { name: string; report: RatingReport }[]): MonthlyReportEmail {
-  const label = monthLabel(month);
-  const url = `${env.appUrl()}/admin/reports?month=${month}`;
+export function buildReportEmail(period: ReportPeriod, orgName: string, all: RatingReport, branches: { name: string; report: RatingReport }[]): MonthlyReportEmail {
+  const label = periodLabel(period);
+  const kind = period.kind === "day" ? "Daily" : "Monthly";
+  const url = `${env.appUrl()}/admin/reports?${periodQuery(period)}`;
   const section = (title: string, body: string) => `<h2 style="margin:28px 0 10px;font-size:16px;color:#0f172a">${title}</h2>${body}`;
   const html = `<!doctype html><html><body style="margin:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:680px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0">
-<tr><td style="background:#02334c;padding:20px 28px;color:#ffffff"><div style="font-size:13px;opacity:.8">${escapeHtml(orgName)} · Synergy Feedback</div><div style="font-size:20px;font-weight:700;margin-top:4px">Monthly feedback report — ${label}</div></td></tr>
+<tr><td style="background:#02334c;padding:20px 28px;color:#ffffff"><div style="font-size:13px;opacity:.8">${escapeHtml(orgName)} · Synergy Feedback</div><div style="font-size:20px;font-weight:700;margin-top:4px">${kind} feedback report — ${label}</div></td></tr>
 <tr><td style="padding:8px 28px 28px">
 ${section("All branches", summary(all) + `<div style="margin-top:12px">${marksTable(all)}</div>`)}
-${all.branches.length > 1 ? section("Average by branch", branchTable(all)) : ""}
-${section("Question-wise marks — all branches", questionsTable(all))}
+${all.branches.length > 1 ? section("Average rating by branch", branchTable(all)) : ""}
+${section("Question-wise ratings — all branches", questionsTable(all))}
 ${branches
   .map((b) => section(`${escapeHtml(b.name)}`, summary(b.report) + `<div style="margin-top:12px">${questionsTable(b.report)}</div>`))
   .join("")}
 <p style="margin:28px 0 0"><a href="${escapeHtml(url)}" style="display:inline-block;background:#02334c;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600;font-size:14px">Open report with charts</a></p>
-<p style="margin:16px 0 0;color:#94a3b8;font-size:12px">Marks come from radio questions whose options are numbers (for example 5, 4, 3, 2, 1). The attached CSV has the same figures.</p>
+<p style="margin:16px 0 0;color:#94a3b8;font-size:12px">Ratings come from radio questions whose options are numbers (for example 5, 4, 3, 2, 1). The attached CSV has the same figures.</p>
 </td></tr></table></td></tr></table></body></html>`;
 
   const text = [
-    `Monthly feedback report — ${label}`,
+    `${kind} feedback report — ${label}`,
     "",
     `All branches: average ${formatAverage(all.average)} / ${all.maxScore}, ${all.ratings} ratings from ${all.customers} customers`,
-    ...all.marks.map((m) => `  Mark ${m.score}: ${m.count}`),
+    ...all.marks.map((m) => `  Rating ${m.score}: ${m.count}`),
     "",
     ...all.branches.map((b) => `${b.name}: average ${formatAverage(b.average)}, ${b.customers} customers`),
     "",
@@ -97,26 +98,26 @@ ${branches
   ].join("\n");
 
   return {
-    subject: `${orgName} feedback report — ${label}`,
+    subject: `${orgName} ${kind.toLowerCase()} feedback report — ${label}`,
     html,
     text,
-    csv: ratingReportCsv(month, [{ name: "All branches", report: all }, ...branches]),
+    csv: ratingReportCsv(periodKey(period), [{ name: "All branches", report: all }, ...branches]),
   };
 }
 
 /**
- * Builds the report for `month` across all branches (service role) and emails
- * it to the "Recipients for all forms" list. Returns what happened.
+ * Builds the report for a day or month across all branches (service role) and
+ * emails it to the "Recipients for all forms" list. Returns what happened.
  */
-export async function sendMonthlyReport(month: string, opts: { idempotencyKey?: string; userId?: string | null } = {}) {
+export async function sendRatingReport(period: ReportPeriod, opts: { idempotencyKey?: string; userId?: string | null } = {}) {
   const settings = await getAppSettings();
   const recipients = settings.email.defaultRecipients;
   if (!recipients.length) return { sent: false, reason: "no_recipients" as const };
 
-  const data = await loadRatingData(createAdminClient(), month, env.timezone());
+  const data = await loadRatingData(createAdminClient(), period, env.timezone());
   const all = reportFor(data);
   const branches = all.branches.map((b) => ({ name: b.name, report: reportFor(data, b.id) }));
-  const email = buildMonthlyReportEmail(month, settings.organization.name || "Synergy Wellness", all, branches);
+  const email = buildReportEmail(period, settings.organization.name || "Synergy Wellness", all, branches);
   const sent = await sendEmail({
     to: recipients,
     subject: email.subject,
@@ -124,14 +125,17 @@ export async function sendMonthlyReport(month: string, opts: { idempotencyKey?: 
     text: email.text,
     fromName: settings.email.senderName,
     idempotencyKey: opts.idempotencyKey,
-    attachments: [{ filename: `feedback-report-${month}.csv`, content: email.csv, contentType: "text/csv" }],
+    attachments: [{ filename: `feedback-report-${periodKey(period)}.csv`, content: email.csv, contentType: "text/csv" }],
   });
   if (sent) {
+    // The automatic monthly email is logged as report.monthly_sent (the cron
+    // checks it to send once); manual sends from the Reports page as report.sent.
+    const automatic = !opts.userId && period.kind === "month";
     await logAudit({
       userId: opts.userId ?? null,
-      action: "report.monthly_sent",
+      action: automatic ? "report.monthly_sent" : "report.sent",
       entityType: "report",
-      metadata: { month, recipients: recipients.length, ratings: all.ratings, manual: Boolean(opts.userId) },
+      metadata: { ...(period.kind === "month" ? { month: period.month } : { date: period.date }), recipients: recipients.length, ratings: all.ratings },
     });
   }
   return { sent, reason: sent ? null : ("send_failed" as const) };
