@@ -8,14 +8,14 @@ import { CreateFormForm } from "./create-form";
 export const metadata: Metadata = { title: "Create Form" };
 
 export default async function NewFormPage() {
-  await requirePermissionPage("forms.create");
+  const session = await requirePermissionPage("forms.create");
   const branches = await listBranchOptions();
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Create New Form" description="Start with the basics — you'll add questions in the builder next." />
       <Card>
         <CardContent className="pt-6 sm:pt-6">
-          <CreateFormForm branches={branches.filter((b) => b.status === "active")} />
+          <CreateFormForm branches={branches.filter((b) => b.status === "active")} allowOthers={session.branchIds.length === 0} />
         </CardContent>
       </Card>
     </div>

@@ -7,6 +7,7 @@ import { FormActionsMenu } from "@/components/admin/form-actions-menu";
 import { FormStatusBadge } from "@/components/admin/status-badges";
 import { formatNumber } from "@/lib/utils";
 import { publicFormUrl } from "@/lib/urls";
+import { formGroupLabel } from "@/lib/forms/others";
 import type { DashboardFormItem } from "@/services/forms/admin";
 import type { FormMenuAccess } from "@/lib/auth/permissions";
 
@@ -54,7 +55,7 @@ export function FormsOverview({ forms, today, access }: { forms: DashboardFormIt
                       )}
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <FormStatusBadge status={f.status} />
-                        <span className="truncate">{f.branch?.name ?? "No branch"}</span>
+                        <span className="truncate">{formGroupLabel(f)}</span>
                       </div>
                     </div>
                     {!access.submissions ? (

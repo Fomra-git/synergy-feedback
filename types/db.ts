@@ -41,6 +41,8 @@ export interface BranchRow {
 export interface FormRow {
   id: string;
   branch_id: string | null;
+  /** Set for forms filed under "Others" instead of a branch; excluded from reports. */
+  other_name: string | null;
   name: string;
   slug: string;
   description: string | null;

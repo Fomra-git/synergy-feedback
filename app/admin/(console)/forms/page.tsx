@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FORMS_PAGE_SIZE, listBranchOptions, listForms } from "@/services/forms/admin";
 import { requireAdminPage } from "@/lib/auth/session";
 import { formatDate } from "@/lib/forms/format";
+import { formGroupLabel } from "@/lib/forms/others";
 import { formatNumber } from "@/lib/utils";
 import { publicFormUrl } from "@/lib/urls";
 import { env } from "@/lib/env";
@@ -58,6 +59,7 @@ export default async function FormsPage(props: PageProps<"/admin/forms">) {
           </NativeSelect>
           <NativeSelect name="branch" defaultValue={filters.branch ?? ""} aria-label="Filter by branch" className="sm:w-44">
             <option value="">All branches</option>
+            {session.branchIds.length === 0 && <option value="others">Others</option>}
             {branches.map((b) => (
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
@@ -100,7 +102,7 @@ export default async function FormsPage(props: PageProps<"/admin/forms">) {
                         {session.can("forms.edit") ? <Link href={`/admin/forms/${f.id}`} className="font-medium hover:text-primary hover:underline">{f.name}</Link> : <span className="font-medium">{f.name}</span>}
                         <p className="truncate text-xs text-muted-foreground">/forms/{f.slug}</p>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{f.branch?.name ?? "—"}</TableCell>
+                      <TableCell className="text-muted-foreground">{f.other_name ? formGroupLabel(f) : (f.branch?.name ?? "—")}</TableCell>
                       <TableCell><FormStatusBadge status={f.status} /></TableCell>
                       <TableCell className="text-right tabular-nums">
                         {session.can("submissions.view") ? <Link href={`/admin/submissions?form=${f.id}`} className="hover:underline">{formatNumber(f.responses)}</Link> : "—"}
@@ -122,7 +124,7 @@ export default async function FormsPage(props: PageProps<"/admin/forms">) {
                 <li key={f.id} className="flex items-start gap-3 p-4">
                   <div className="min-w-0 flex-1">
                     {session.can("forms.edit") ? <Link href={`/admin/forms/${f.id}`} className="font-medium">{f.name}</Link> : <span className="font-medium">{f.name}</span>}
-                    <p className="text-xs text-muted-foreground">{f.branch?.name ?? "No branch"} · {formatNumber(f.responses)} responses</p>
+                    <p className="text-xs text-muted-foreground">{formGroupLabel(f)} · {formatNumber(f.responses)} responses</p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       <FormStatusBadge status={f.status} />
                       <SheetStatusBadge status={f.sheet?.status} enabled={f.sheet?.enabled} />

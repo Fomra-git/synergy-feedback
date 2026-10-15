@@ -102,21 +102,42 @@ export const builderSaveSchema = z
     });
   });
 
-export const formCreateSchema = z.object({
-  name: z.string().trim().min(2, "Form name is required").max(150),
-  description: z.string().trim().max(2000).optional().default(""),
-  branchId: z.union([z.uuid(), z.literal("")]).optional(),
-  slug: z.union([slugSchema, z.literal("")]).optional(),
-  status: z.enum(["draft", "published"]).default("draft"),
-});
+/** Branch, "" (none) or "others" — an "Others" form needs a name instead of a branch. */
+const groupFields = {
+  branchId: z.union([z.uuid(), z.literal(""), z.literal("others")]).optional(),
+  otherName: z.string().trim().max(80).optional(),
+};
+function requireOtherName(d: { branchId?: string; otherName?: string }, ctx: z.RefinementCtx) {
+  if (d.branchId === "others" && (d.otherName ?? "").length < 2) {
+    ctx.addIssue({ code: "custom", path: ["otherName"], message: "Enter a name for this group (at least 2 characters)" });
+  }
+}
 
-export const formDetailsSchema = z.object({
-  formId: z.uuid(),
-  name: z.string().trim().min(2).max(150),
-  description: z.string().trim().max(2000).optional().default(""),
-  branchId: z.union([z.uuid(), z.literal("")]).optional(),
-  slug: slugSchema,
-});
+export const formCreateSchema = z
+  .object({
+    name: z.string().trim().min(2, "Form name is required").max(150),
+    description: z.string().trim().max(2000).optional().default(""),
+    ...groupFields,
+    slug: z.union([slugSchema, z.literal("")]).optional(),
+    status: z.enum(["draft", "published"]).default("draft"),
+  })
+  .superRefine(requireOtherName);
+
+export const formDetailsSchema = z
+  .object({
+    formId: z.uuid(),
+    name: z.string().trim().min(2).max(150),
+    description: z.string().trim().max(2000).optional().default(""),
+    ...groupFields,
+    slug: slugSchema,
+  })
+  .superRefine(requireOtherName);
+
+/** Maps the dropdown choice to the forms.branch_id / forms.other_name columns. */
+export function formGroupColumns(d: { branchId?: string; otherName?: string }): { branch_id: string | null; other_name: string | null } {
+  if (d.branchId === "others") return { branch_id: null, other_name: (d.otherName ?? "").trim() };
+  return { branch_id: d.branchId || null, other_name: null };
+}
 
 export const publicSettingsSchema = z.object({
   appearance: z

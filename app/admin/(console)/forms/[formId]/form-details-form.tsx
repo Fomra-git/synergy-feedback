@@ -12,23 +12,36 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { FieldError } from "@/components/ui/field-error";
 import { updateFormDetailsAction } from "../actions";
+import { OTHERS_VALUE } from "@/lib/forms/others";
 
 interface Values {
   name: string;
   description: string;
   branchId: string;
+  otherName: string;
   slug: string;
 }
 
-export function FormDetailsForm({ form, branches, appUrl }: { form: Values & { id: string }; branches: { id: string; name: string }[]; appUrl: string }) {
+export function FormDetailsForm({
+  form,
+  branches,
+  appUrl,
+  allowOthers,
+}: {
+  form: Values & { id: string };
+  branches: { id: string; name: string }[];
+  appUrl: string;
+  allowOthers: boolean;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const { register, handleSubmit, watch, setError, formState } = useForm<Values>({ defaultValues: form });
   const slug = watch("slug");
+  const isOthers = watch("branchId") === OTHERS_VALUE;
 
   const onSubmit = (values: Values) =>
     start(async () => {
-      const res = await updateFormDetailsAction({ formId: form.id, ...values });
+      const res = await updateFormDetailsAction({ formId: form.id, ...values, otherName: values.branchId === OTHERS_VALUE ? values.otherName : undefined });
       if (res.ok) {
         toast.success(res.message);
         router.refresh();
@@ -57,7 +70,21 @@ export function FormDetailsForm({ form, branches, appUrl }: { form: Values & { i
             {branches.map((b) => (
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
+            {(allowOthers || form.branchId === OTHERS_VALUE) && <option value={OTHERS_VALUE}>Others</option>}
           </NativeSelect>
+          {isOthers && (
+            <div className="space-y-2 pt-1">
+              <Label htmlFor="d-other">Name</Label>
+              <Input
+                id="d-other"
+                placeholder="e.g. Recruitment, Events"
+                aria-invalid={!!formState.errors.otherName}
+                {...register("otherName", { validate: (v) => !isOthers || v.trim().length >= 2 || "Enter a name for this group (at least 2 characters)" })}
+              />
+              <FieldError message={formState.errors.otherName?.message} />
+              <p className="text-xs text-muted-foreground">Not linked to any branch and not included in Reports.</p>
+            </div>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="d-slug">URL slug</Label>

@@ -8,6 +8,7 @@ import { FormActionsMenu } from "@/components/admin/form-actions-menu";
 import { formMenuAccess } from "@/lib/auth/permissions";
 import { Button } from "@/components/ui/button";
 import { publicFormUrl } from "@/lib/urls";
+import { formGroupLabel } from "@/lib/forms/others";
 import { FormTabs } from "./form-tabs";
 import type { FormRow, SheetConnectionRow } from "@/types/db";
 
@@ -17,11 +18,11 @@ export default async function FormLayout(props: LayoutProps<"/admin/forms/[formI
   const session = await requirePermissionPage("forms.edit");
   const supabase = await createClient();
   const [{ data: form }, { data: conn }] = await Promise.all([
-    supabase.from("forms").select("id, name, slug, status, branch:branches(name)").eq("id", formId).maybeSingle(),
+    supabase.from("forms").select("id, name, slug, status, other_name, branch:branches(name)").eq("id", formId).maybeSingle(),
     supabase.from("google_sheet_connections").select("status, enabled").eq("form_id", formId).maybeSingle<Pick<SheetConnectionRow, "status" | "enabled">>(),
   ]);
   if (!form) notFound();
-  const f = form as unknown as Pick<FormRow, "id" | "name" | "slug" | "status"> & { branch: { name: string } | null };
+  const f = form as unknown as Pick<FormRow, "id" | "name" | "slug" | "status" | "other_name"> & { branch: { name: string } | null };
   const url = publicFormUrl(f.slug);
 
   return (
@@ -35,7 +36,7 @@ export default async function FormLayout(props: LayoutProps<"/admin/forms/[formI
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <FormStatusBadge status={f.status} />
             <SheetStatusBadge status={conn?.status} enabled={conn?.enabled} />
-            <span>{f.branch?.name ?? "No branch"}</span>
+            <span>{formGroupLabel(f)}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">

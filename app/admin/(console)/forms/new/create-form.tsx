@@ -15,34 +15,40 @@ import { Textarea } from "@/components/ui/textarea";
 import { FieldError } from "@/components/ui/field-error";
 import { slugify } from "@/lib/utils";
 import { createFormAction } from "../actions";
+import { OTHERS_VALUE } from "@/lib/forms/others";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Form name is required").max(150),
   description: z.string().max(2000).optional(),
   branchId: z.string().optional(),
+  otherName: z.string().trim().max(80).optional(),
   slug: z
     .string()
     .trim()
     .max(80)
     .refine((s) => s === "" || /^[a-z0-9]+(-[a-z0-9]+)*$/.test(s), "Use lowercase letters, numbers and hyphens")
     .optional(),
+}).refine((v) => v.branchId !== OTHERS_VALUE || (v.otherName ?? "").length >= 2, {
+  path: ["otherName"],
+  message: "Enter a name for this group (at least 2 characters)",
 });
 type Values = z.infer<typeof schema>;
 
-export function CreateFormForm({ branches }: { branches: { id: string; name: string }[] }) {
+export function CreateFormForm({ branches, allowOthers }: { branches: { id: string; name: string }[]; allowOthers: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [slugTouched, setSlugTouched] = useState(false);
   const { register, handleSubmit, setValue, watch, formState } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", description: "", branchId: branches[0]?.id ?? "", slug: "" },
+    defaultValues: { name: "", description: "", branchId: branches[0]?.id ?? "", otherName: "", slug: "" },
   });
   const slug = watch("slug");
+  const isOthers = watch("branchId") === OTHERS_VALUE;
 
   const onSubmit = (values: Values) =>
     start(async () => {
       // An auto-filled slug is only a suggestion: let the server make it unique.
-      const res = await createFormAction({ ...values, slug: slugTouched ? values.slug : "", status: "draft" });
+      const res = await createFormAction({ ...values, otherName: values.branchId === OTHERS_VALUE ? values.otherName : undefined, slug: slugTouched ? values.slug : "", status: "draft" });
       if (res.ok) {
         toast.success("Form created");
         router.push(`/admin/forms/${res.data.id}/builder`);
@@ -78,7 +84,16 @@ export function CreateFormForm({ branches }: { branches: { id: string; name: str
             {branches.map((b) => (
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
+            {allowOthers && <option value={OTHERS_VALUE}>Others</option>}
           </NativeSelect>
+          {isOthers && (
+            <div className="space-y-2 pt-1">
+              <Label htmlFor="otherName">Name</Label>
+              <Input id="otherName" placeholder="e.g. Recruitment, Events, Corporate wellness" autoFocus aria-invalid={!!e.otherName} {...register("otherName")} />
+              <FieldError message={e.otherName?.message} />
+              <p className="text-xs text-muted-foreground">Not linked to any branch and not included in Reports.</p>
+            </div>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="slug">URL slug</Label>

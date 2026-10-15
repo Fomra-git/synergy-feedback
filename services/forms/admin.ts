@@ -44,7 +44,8 @@ export async function listForms(filters: {
   } else {
     query = query.neq("status", "archived");
   }
-  if (filters.branch) query = query.eq("branch_id", filters.branch);
+  if (filters.branch === "others") query = query.not("other_name", "is", null);
+  else if (filters.branch && /^[0-9a-f-]{36}$/i.test(filters.branch)) query = query.eq("branch_id", filters.branch);
   const scope = await branchScope();
   if (scope) query = query.in("branch_id", scope);
   if (filters.q) query = query.ilike("name", `%${filters.q.replace(/[%_\\]/g, (c) => `\\${c}`)}%`);
@@ -105,7 +106,7 @@ export async function listFormOptions(): Promise<{ id: string; name: string }[]>
   return (data ?? []) as { id: string; name: string }[];
 }
 
-export interface DashboardFormItem extends Pick<FormRow, "id" | "name" | "slug" | "status"> {
+export interface DashboardFormItem extends Pick<FormRow, "id" | "name" | "slug" | "status" | "other_name"> {
   branch: { name: string } | null;
   total: number;
   today: number;
@@ -119,7 +120,7 @@ export async function listDashboardForms(today: string, timeZone: string): Promi
   const supabase = await createClient();
   let query = supabase
     .from("forms")
-    .select("id, name, slug, status, branch:branches(name)")
+    .select("id, name, slug, status, other_name, branch:branches(name)")
     .neq("status", "archived")
     .order("name");
   const scope = await branchScope();

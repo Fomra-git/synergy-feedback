@@ -11,6 +11,7 @@ import { logAudit } from "@/lib/audit";
 import {
   builderSaveSchema,
   formCreateSchema,
+  formGroupColumns,
   formDetailsSchema,
   privateSettingsSchema,
   publicSettingsSchema,
@@ -42,7 +43,7 @@ export async function createFormAction(input: z.input<typeof formCreateSchema>):
         .insert({
           name: data.name,
           description: data.description || null,
-          branch_id: data.branchId || null,
+          ...formGroupColumns(data),
           slug,
           status: "draft",
           created_by: session.userId,
@@ -80,7 +81,7 @@ export async function updateFormDetailsAction(input: z.input<typeof formDetailsS
       check(
         await supabase
           .from("forms")
-          .update({ name: data.name, description: data.description || null, branch_id: data.branchId || null, slug: data.slug })
+          .update({ name: data.name, description: data.description || null, ...formGroupColumns(data), slug: data.slug })
           .eq("id", form.id),
       );
       await logAudit({

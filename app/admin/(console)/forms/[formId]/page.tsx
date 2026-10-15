@@ -15,11 +15,14 @@ import { formatDateTime } from "@/lib/forms/format";
 import { env } from "@/lib/env";
 import { formatNumber } from "@/lib/utils";
 import { FormDetailsForm } from "./form-details-form";
+import { OTHERS_VALUE } from "@/lib/forms/others";
+import { requireAdminPage } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Form" };
 
 export default async function FormOverviewPage(props: PageProps<"/admin/forms/[formId]">) {
   const { formId } = await props.params;
+  const session = await requireAdminPage();
   const [data, branches, series] = await Promise.all([getFormForAdmin(formId), listBranchOptions(), getTimeseries(30, { formId })]);
   if (!data) notFound();
   const { form, fields } = data;
@@ -63,9 +66,10 @@ export default async function FormOverviewPage(props: PageProps<"/admin/forms/[f
           </CardHeader>
           <CardContent>
             <FormDetailsForm
-              form={{ id: form.id, name: form.name, description: form.description ?? "", branchId: form.branch_id ?? "", slug: form.slug }}
+              form={{ id: form.id, name: form.name, description: form.description ?? "", branchId: form.other_name ? OTHERS_VALUE : (form.branch_id ?? ""), otherName: form.other_name ?? "", slug: form.slug }}
               branches={branches}
               appUrl={env.appUrl()}
+              allowOthers={session.branchIds.length === 0}
             />
           </CardContent>
         </Card>
