@@ -25,7 +25,7 @@ export default async function PreviewPage(props: PageProps<"/admin/forms/[formId
           mode="preview"
           form={{ slug: form.slug, name: look.title, description: look.description, settings: { ...(form.settings ?? {}), appearance: look.appearance }, fields }}
           orgName={settings.organization.name}
-          logoUrl={(look.appearance.useGlobal ? "" : form.settings?.appearance?.logoUrl) || settings.branding.logoUrl || null}
+          logoUrl={form.settings?.appearance?.logoUrl || settings.branding.logoUrl || settings.organization.logoUrl || null}
         />
       </div>
     </div>

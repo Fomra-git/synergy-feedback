@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, requireSuperAdmin } from "@/lib/auth/session";
 import { check, runAction, UserFacingError, type ActionResult } from "@/lib/actions";
 import { logAudit } from "@/lib/audit";
+import { logError } from "@/lib/logger";
 import { appSettingsSchema, type AppSettings } from "@/schemas/settings";
 import { contentMatchesMime } from "@/lib/security/files";
 
@@ -47,9 +48,18 @@ export async function uploadLogoAction(formData: FormData): Promise<ActionResult
     if (!contentMatchesMime(bytes, file.type)) throw new UserFacingError("The file is not a valid image.");
     const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
     const path = `logos/${randomUUID()}.${ext}`;
-    const storage = createAdminClient().storage.from("branding");
-    const { error } = await storage.upload(path, bytes, { contentType: file.type, cacheControl: "31536000" });
-    if (error) throw error;
+    const admin = createAdminClient();
+    const storage = admin.storage.from("branding");
+    let { error } = await storage.upload(path, bytes, { contentType: file.type, cacheControl: "31536000" });
+    if (error && /bucket not found/i.test(error.message)) {
+      // The database setup normally creates this bucket; recover if it was skipped.
+      await admin.storage.createBucket("branding", { public: true, fileSizeLimit: 2 * 1024 * 1024, allowedMimeTypes: LOGO_TYPES });
+      ({ error } = await storage.upload(path, bytes, { contentType: file.type, cacheControl: "31536000" }));
+    }
+    if (error) {
+      logError("logo.upload_failed", error);
+      throw new UserFacingError(`Logo upload failed: ${error.message}`);
+    }
     return { url: storage.getPublicUrl(path).data.publicUrl };
   });
 }

@@ -9,7 +9,8 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${supabaseOrigin} https://*.googleusercontent.com`,
+  // Logos may be hosted anywhere over HTTPS (e.g. the clinic website).
+  `img-src 'self' data: blob: https: ${supabaseOrigin}${isDev ? " http:" : ""}`,
   "font-src 'self' data:",
   `connect-src 'self' ${supabaseOrigin} ${supabaseWs} https://challenges.cloudflare.com`,
   "frame-src https://challenges.cloudflare.com",

@@ -63,6 +63,14 @@ export function DynamicFormRenderer({
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState<Phase>({ kind: "form" });
   const [serverError, setServerError] = useState<string | null>(null);
+  // A logo URL that can't load falls back to the default mark instead of a broken image.
+  const [logoFailed, setLogoFailed] = useState(false);
+  const logoRef = useRef<HTMLImageElement>(null);
+  // The server-rendered <img> may fail before React attaches onError — check once mounted.
+  useEffect(() => {
+    const img = logoRef.current;
+    if (img && img.complete && img.naturalWidth === 0) setLogoFailed(true);
+  }, []);
   const [captchaToken, setCaptchaToken] = useState("");
   const [clientToken] = useState(() => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : null));
   const startedAt = useRef<number>(0);
@@ -172,10 +180,16 @@ export function DynamicFormRenderer({
         <main className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_40px_-12px_rgba(15,23,42,0.15)]">
           <div className="flex flex-col items-center px-4 py-6 text-center font-heading sm:px-10 sm:py-9" style={{ background: headerColor, color: readableTextColor(headerColor) }}>
             {/* Logo sits inside the title box; uploaded logos get a white card so dark artwork stays visible. */}
-            {logoUrl ? (
+            {logoUrl && !logoFailed ? (
               <span className="mb-4 inline-flex rounded-xl bg-white px-4 py-2.5 shadow-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element -- admin-configured logo */}
-                <img src={logoUrl} alt={orgName ?? "Logo"} className="h-14 w-auto max-w-[220px] object-contain sm:h-16 sm:max-w-[280px]" />
+                <img
+                  ref={logoRef}
+                  src={logoUrl}
+                  alt={orgName ?? "Logo"}
+                  className="h-14 w-auto max-w-[220px] object-contain sm:h-16 sm:max-w-[280px]"
+                  onError={() => setLogoFailed(true)}
+                />
               </span>
             ) : (
               <LogoMark className="mb-4 size-14 shadow-sm sm:size-16" />

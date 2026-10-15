@@ -64,7 +64,7 @@ export default async function PublicFormPage(props: PageProps<"/forms/[slug]">) 
       captchaSiteKey={captcha}
       closedMessage={closed}
       orgName={settings.organization.name}
-      logoUrl={(look.appearance.useGlobal ? "" : form.settings.appearance?.logoUrl) || settings.branding.logoUrl || settings.organization.logoUrl || null}
+      logoUrl={form.settings.appearance?.logoUrl || settings.branding.logoUrl || settings.organization.logoUrl || null}
     />
   );
 }

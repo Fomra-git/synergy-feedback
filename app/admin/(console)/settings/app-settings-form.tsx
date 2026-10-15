@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { readableTextColor } from "@/lib/utils";
 import type { AppSettings } from "@/schemas/settings";
 import { saveAppSettingsAction, uploadLogoAction } from "./actions";
+import { prepareLogo } from "@/lib/images/prepare-logo";
 
 function F({ id, label, children, hint }: { id: string; label: string; children: React.ReactNode; hint?: string }) {
   return (
@@ -112,17 +113,25 @@ export function AppSettingsForm({
                 <input
                   type="file"
                   className="sr-only"
-                  accept="image/png,image/jpeg,image/webp"
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
+                    e.target.value = "";
                     setUploading(true);
-                    const fd = new FormData();
-                    fd.set("file", file);
-                    const res = await uploadLogoAction(fd);
-                    setUploading(false);
-                    if (res.ok) setS((p) => ({ ...p, branding: { ...p.branding, logoUrl: res.data.url } }));
-                    else toast.error(res.error);
+                    try {
+                      const fd = new FormData();
+                      fd.set("file", await prepareLogo(file));
+                      const res = await uploadLogoAction(fd);
+                      if (res.ok) {
+                        setS((p) => ({ ...p, branding: { ...p.branding, logoUrl: res.data.url } }));
+                        toast.success("Logo uploaded — click Save changes to apply it to your forms.");
+                      } else toast.error(res.error);
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : "Upload failed.");
+                    } finally {
+                      setUploading(false);
+                    }
                   }}
                 />
               </label>

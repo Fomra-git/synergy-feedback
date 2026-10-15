@@ -19,6 +19,7 @@ import { readableTextColor } from "@/lib/utils";
 import type { FormNotificationSettings, FormPublicSettings, FormSheetSettings, FormSubmissionSettings } from "@/types/forms";
 import { savePrivateSettingsAction, savePublicSettingsAction } from "../../actions";
 import { uploadLogoAction } from "../../../settings/actions";
+import { prepareLogo } from "@/lib/images/prepare-logo";
 
 interface PrivateSettings {
   submission: FormSubmissionSettings;
@@ -188,7 +189,7 @@ export function FormSettingsTabs({
             <CardDescription>Name, description, branch and slug are edited on the Overview tab. Configure logo and search/social metadata here.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <Field label="Form logo" hint="PNG, JPG or WebP up to 2 MB. Falls back to the organisation logo.">
+            <Field label="Form logo" hint="PNG, JPG, WebP or SVG — large images are resized automatically. Used even when global appearance is on; falls back to the organisation logo.">
               <div className="flex flex-wrap items-center gap-3">
                 {pub.appearance.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element -- uploaded logo preview
@@ -199,20 +200,26 @@ export function FormSettingsTabs({
                   Upload logo
                   <input
                     type="file"
-                    accept="image/png,image/jpeg,image/webp"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
                     className="sr-only"
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
+                      e.target.value = "";
                       setUploading(true);
-                      const fd = new FormData();
-                      fd.set("file", file);
-                      const res = await uploadLogoAction(fd);
-                      setUploading(false);
-                      if (res.ok) {
-                        setA({ logoUrl: res.data.url });
-                        toast.success("Logo uploaded — remember to save");
-                      } else toast.error(res.error);
+                      try {
+                        const fd = new FormData();
+                        fd.set("file", await prepareLogo(file));
+                        const res = await uploadLogoAction(fd);
+                        if (res.ok) {
+                          setA({ logoUrl: res.data.url });
+                          toast.success("Logo uploaded — click Save changes to apply it.");
+                        } else toast.error(res.error);
+                      } catch (err) {
+                        toast.error(err instanceof Error ? err.message : "Upload failed.");
+                      } finally {
+                        setUploading(false);
+                      }
                     }}
                   />
                 </label>
