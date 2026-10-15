@@ -11,6 +11,7 @@ import { cn, readableTextColor } from "@/lib/utils";
 import type { AnswerMap, FormField, FormPublicSettings } from "@/types/forms";
 import { Turnstile } from "./turnstile";
 import { LogoMark } from "@/components/brand/logo";
+import { logoSrc } from "@/lib/logo-src";
 
 export interface RendererForm {
   slug: string;
@@ -185,7 +186,7 @@ export function DynamicFormRenderer({
                 {/* eslint-disable-next-line @next/next/no-img-element -- admin-configured logo */}
                 <img
                   ref={logoRef}
-                  src={logoUrl}
+                  src={logoSrc(logoUrl) ?? undefined}
                   alt={orgName ?? "Logo"}
                   className="h-14 w-auto max-w-[220px] object-contain sm:h-16 sm:max-w-[280px]"
                   onError={() => setLogoFailed(true)}

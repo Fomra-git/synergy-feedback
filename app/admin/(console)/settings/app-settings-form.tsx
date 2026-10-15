@@ -15,6 +15,7 @@ import { readableTextColor } from "@/lib/utils";
 import type { AppSettings } from "@/schemas/settings";
 import { saveAppSettingsAction, uploadLogoAction } from "./actions";
 import { prepareLogo } from "@/lib/images/prepare-logo";
+import { logoSrc } from "@/lib/logo-src";
 
 function F({ id, label, children, hint }: { id: string; label: string; children: React.ReactNode; hint?: string }) {
   return (
@@ -103,7 +104,7 @@ export function AppSettingsForm({
           <div className="flex flex-wrap items-center gap-3">
             {s.branding.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- uploaded logo preview
-              <img src={s.branding.logoUrl} alt="Organisation logo" className="h-12 w-auto rounded border bg-white p-1" />
+              <img src={logoSrc(s.branding.logoUrl) ?? undefined} alt="Organisation logo" className="h-12 w-auto rounded border bg-white p-1" />
             ) : (
               <span className="text-sm text-muted-foreground">No logo uploaded</span>
             )}

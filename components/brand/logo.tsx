@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { logoSrc } from "@/lib/logo-src";
 
 /** Synergy Wellness mark (three rising leaves) on a white rounded tile, so it reads on light and dark backgrounds. */
 export function LogoMark({ className }: { className?: string; color?: string }) {
@@ -33,7 +34,7 @@ export function Logo({
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       {logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- admin-configured external logo
-        <img src={logoUrl} alt="" className="h-8 w-auto max-w-[120px] object-contain" />
+        <img src={logoSrc(logoUrl) ?? undefined} alt="" className="h-8 w-auto max-w-[120px] object-contain" />
       ) : (
         <LogoMark color={color ?? "#0f766e"} />
       )}

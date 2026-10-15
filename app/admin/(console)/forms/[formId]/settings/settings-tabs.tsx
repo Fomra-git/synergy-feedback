@@ -20,6 +20,7 @@ import type { FormNotificationSettings, FormPublicSettings, FormSheetSettings, F
 import { savePrivateSettingsAction, savePublicSettingsAction } from "../../actions";
 import { uploadLogoAction } from "../../../settings/actions";
 import { prepareLogo } from "@/lib/images/prepare-logo";
+import { logoSrc } from "@/lib/logo-src";
 
 interface PrivateSettings {
   submission: FormSubmissionSettings;
@@ -193,7 +194,7 @@ export function FormSettingsTabs({
               <div className="flex flex-wrap items-center gap-3">
                 {pub.appearance.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element -- uploaded logo preview
-                  <img src={pub.appearance.logoUrl} alt="Form logo" className="h-12 w-auto rounded border bg-white p-1" />
+                  <img src={logoSrc(pub.appearance.logoUrl) ?? undefined} alt="Form logo" className="h-12 w-auto rounded border bg-white p-1" />
                 ) : null}
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm font-medium hover:bg-muted">
                   {uploading ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
