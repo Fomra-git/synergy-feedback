@@ -169,20 +169,17 @@ export function DynamicFormRenderer({
   return (
     <div style={style} className={cn("min-h-dvh px-3 py-5 sm:px-4 sm:py-12", FONT_CLASS[appearance.font ?? "inter"])}>
       <div ref={topRef} className="mx-auto w-full max-w-2xl lg:max-w-4xl">
-        <header className="mb-6 flex flex-col items-center text-center">
-          {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- admin-configured logo
-            <img src={logoUrl} alt={orgName ?? "Logo"} className="mb-5 h-20 w-auto max-w-[260px] object-contain sm:h-24 sm:max-w-[320px]" />
-          ) : (
-            <div className="mb-5 flex items-center gap-3 text-base font-semibold tracking-wide text-slate-700 uppercase sm:text-lg">
-              <LogoMark className="size-12 sm:size-14" />
-              {orgName ?? "Synergy Wellness"}
-            </div>
-          )}
-        </header>
-
         <main className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_40px_-12px_rgba(15,23,42,0.15)]">
-          <div className="px-4 py-6 text-center font-heading sm:px-10 sm:py-10" style={{ background: headerColor, color: readableTextColor(headerColor) }}>
+          <div className="flex flex-col items-center px-4 py-6 text-center font-heading sm:px-10 sm:py-9" style={{ background: headerColor, color: readableTextColor(headerColor) }}>
+            {/* Logo sits inside the title box; uploaded logos get a white card so dark artwork stays visible. */}
+            {logoUrl ? (
+              <span className="mb-4 inline-flex rounded-xl bg-white px-4 py-2.5 shadow-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element -- admin-configured logo */}
+                <img src={logoUrl} alt={orgName ?? "Logo"} className="h-14 w-auto max-w-[220px] object-contain sm:h-16 sm:max-w-[280px]" />
+              </span>
+            ) : (
+              <LogoMark className="mb-4 size-14 shadow-sm sm:size-16" />
+            )}
             <h1 className="text-[22px] leading-tight font-bold text-balance sm:text-[26px]">{form.name}</h1>
             {form.description && (
               <p id="form-description" className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed whitespace-pre-line opacity-90 sm:text-[15px]">
