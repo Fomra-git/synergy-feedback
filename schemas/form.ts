@@ -149,6 +149,7 @@ export const publicSettingsSchema = z.object({
       headerColor: hexColor.optional(),
       font: z.enum(["inter", "serif", "rounded", "system"]).optional(),
       logoUrl: safeUrl,
+      logoSize: z.number().int().min(40).max(200).optional(),
     })
     .default({}),
   behavior: z

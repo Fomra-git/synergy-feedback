@@ -108,6 +108,8 @@ export interface FormAppearance {
   headerColor?: string;
   font?: "inter" | "serif" | "rounded" | "system";
   logoUrl?: string;
+  /** logo height in px on desktop; unset = the size from Settings → Branding */
+  logoSize?: number;
 }
 
 export interface FormBehavior {

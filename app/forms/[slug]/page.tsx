@@ -65,7 +65,7 @@ export default async function PublicFormPage(props: PageProps<"/forms/[slug]">) 
       closedMessage={closed}
       orgName={settings.organization.name}
       logoUrl={form.settings.appearance?.logoUrl || settings.branding.logoUrl || settings.organization.logoUrl || null}
-      logoSize={settings.branding.logoSize}
+      logoSize={form.settings.appearance?.logoSize ?? settings.branding.logoSize}
     />
   );
 }

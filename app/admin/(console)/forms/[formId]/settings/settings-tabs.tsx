@@ -21,6 +21,7 @@ import { savePrivateSettingsAction, savePublicSettingsAction } from "../../actio
 import { uploadLogoAction } from "../../../settings/actions";
 import { prepareLogo } from "@/lib/images/prepare-logo";
 import { logoSrc } from "@/lib/logo-src";
+import { LogoMark } from "@/components/brand/logo";
 
 interface PrivateSettings {
   submission: FormSubmissionSettings;
@@ -74,6 +75,7 @@ export function FormSettingsTabs({
   googleNotice,
   form,
   globalAppearance,
+  globalLogo,
   privateSettings,
   google,
 }: {
@@ -82,6 +84,7 @@ export function FormSettingsTabs({
   googleNotice: string | null;
   form: { id: string; name: string; slug: string; description: string | null; settings: FormPublicSettings };
   globalAppearance: GlobalFormDefaults;
+  globalLogo: { url: string; size: number };
   privateSettings: PrivateSettings;
   google: Omit<GoogleSheetsPanelProps, "formId" | "formName" | "notice">;
 }) {
@@ -231,6 +234,57 @@ export function FormSettingsTabs({
                 )}
               </div>
             </Field>
+            <div className="space-y-3 rounded-lg border p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <Label htmlFor="form-logo-size-custom">Custom logo size for this form</Label>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {pub.appearance.logoSize ? "This form uses its own logo size." : `Off: uses the size from Settings → Branding (${globalLogo.size}px).`}
+                  </p>
+                </div>
+                <Switch
+                  id="form-logo-size-custom"
+                  checked={pub.appearance.logoSize != null}
+                  onCheckedChange={(on) => setA({ logoSize: on ? globalLogo.size : undefined })}
+                />
+              </div>
+              {pub.appearance.logoSize != null && (
+                <>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="form-logo-size"
+                      type="range"
+                      min={40}
+                      max={200}
+                      step={4}
+                      aria-label="Logo size on this form"
+                      value={pub.appearance.logoSize}
+                      onChange={(e) => setA({ logoSize: Number(e.target.value) })}
+                      className="flex-1 accent-[var(--primary)]"
+                    />
+                    <span className="w-16 text-right text-sm tabular-nums">{pub.appearance.logoSize}px</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Height of the logo in the title box on desktop (phones show about 70%).</p>
+                </>
+              )}
+              <div
+                className="flex items-center justify-center rounded-lg px-4 py-4"
+                style={{ background: pub.appearance.useGlobal ? globalAppearance.headerColor : pub.appearance.headerColor }}
+              >
+                {(() => {
+                  const size = pub.appearance.logoSize ?? globalLogo.size;
+                  const url = pub.appearance.logoUrl || globalLogo.url;
+                  return url ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- uploaded logo preview
+                    <img src={logoSrc(url) ?? undefined} alt="" style={{ height: size, maxWidth: "100%" }} className="w-auto object-contain" />
+                  ) : (
+                    <span style={{ height: size, width: size }} className="inline-flex">
+                      <LogoMark tile={false} className="size-full" />
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
             <Field label="SEO title" htmlFor="seo-title" hint="Shown in the browser tab and when the link is shared.">
               <Input id="seo-title" value={pub.seo.title ?? ""} placeholder={`${form.name} — Synergy Wellness`} onChange={(e) => setSeo({ title: e.target.value })} maxLength={120} />
             </Field>

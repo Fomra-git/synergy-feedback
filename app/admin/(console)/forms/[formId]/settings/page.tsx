@@ -41,6 +41,7 @@ export default async function FormSettingsPage(props: PageProps<"/admin/forms/[f
       googleNotice={typeof sp.google === "string" ? sp.google : null}
       form={{ id: data.form.id, name: data.form.name, slug: data.form.slug, description: data.form.description, settings: data.form.settings ?? {} }}
       globalAppearance={appSettings.branding.formDefaults}
+      globalLogo={{ url: appSettings.branding.logoUrl || appSettings.organization.logoUrl || "", size: appSettings.branding.logoSize }}
       privateSettings={{
         submission: { allowSubmissions: true, duplicateProtection: true, ...(data.settings?.submission ?? {}) },
         notifications: { enabled: true, recipients: [], includeAnswers: false, ...(data.settings?.notifications ?? {}) },
