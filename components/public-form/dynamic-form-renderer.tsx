@@ -188,12 +188,12 @@ export function DynamicFormRenderer({
                   ref={logoRef}
                   src={logoSrc(logoUrl) ?? undefined}
                   alt={orgName ?? "Logo"}
-                  className="h-14 w-auto max-w-[220px] object-contain sm:h-16 sm:max-w-[280px]"
+                  className="h-20 w-auto max-w-[280px] object-contain sm:h-28 sm:max-w-[420px]"
                   onError={() => setLogoFailed(true)}
                 />
               </span>
             ) : (
-              <LogoMark tile={false} className="mb-4 size-14 sm:size-16" />
+              <LogoMark tile={false} className="mb-4 size-20 sm:size-28" />
             )}
             <h1 className="text-[22px] leading-tight font-bold text-balance sm:text-[26px]">{form.name}</h1>
             {form.description && (
