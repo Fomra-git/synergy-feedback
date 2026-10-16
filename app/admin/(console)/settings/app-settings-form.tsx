@@ -16,6 +16,7 @@ import type { AppSettings } from "@/schemas/settings";
 import { saveAppSettingsAction, uploadLogoAction } from "./actions";
 import { prepareLogo } from "@/lib/images/prepare-logo";
 import { logoSrc } from "@/lib/logo-src";
+import { LogoMark } from "@/components/brand/logo";
 
 function F({ id, label, children, hint }: { id: string; label: string; children: React.ReactNode; hint?: string }) {
   return (
@@ -140,6 +141,35 @@ export function AppSettingsForm({
             {canEdit && s.branding.logoUrl && (
               <Button variant="ghost" size="sm" onClick={() => setS({ ...s, branding: { ...s.branding, logoUrl: "" } })}><X /> Remove</Button>
             )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="br-logo-size">Logo size on forms</Label>
+            <div className="flex items-center gap-3">
+              <input
+                id="br-logo-size"
+                type="range"
+                min={40}
+                max={200}
+                step={4}
+                disabled={dis}
+                value={s.branding.logoSize}
+                onChange={(e) => setS({ ...s, branding: { ...s.branding, logoSize: Number(e.target.value) } })}
+                className="flex-1 accent-[var(--primary)]"
+                aria-describedby="br-logo-size-hint"
+              />
+              <span className="w-16 text-right text-sm tabular-nums">{s.branding.logoSize}px</span>
+            </div>
+            <p id="br-logo-size-hint" className="text-xs text-muted-foreground">
+              Height of the logo in each form&apos;s title box on desktop (phones show about 70%). Default 112px.
+            </p>
+            <div className="flex items-center justify-center rounded-lg px-4 py-4" style={{ background: s.branding.formDefaults.headerColor }}>
+              {s.branding.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- uploaded logo preview
+                <img src={logoSrc(s.branding.logoUrl) ?? undefined} alt="" style={{ height: s.branding.logoSize, maxWidth: "100%" }} className="w-auto object-contain" />
+              ) : (
+                <span style={{ height: s.branding.logoSize, width: s.branding.logoSize }} className="inline-flex"><LogoMark tile={false} className="size-full" /></span>
+              )}
+            </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {(["primaryColor", "secondaryColor"] as const).map((k) => (

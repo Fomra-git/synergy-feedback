@@ -18,6 +18,8 @@ export const appSettingsSchema = z.object({
     primaryColor: hexColor,
     secondaryColor: hexColor,
     logoUrl: url,
+    /** Logo height in the form's title box on desktop, in px (phones show ~70%). */
+    logoSize: z.number().int().min(40).max(200),
     /** Global form appearance, used by every form with "Apply global settings" on. */
     formDefaults: z.object({
       primaryColor: hexColor,
@@ -57,6 +59,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     primaryColor: "#0f766e",
     secondaryColor: "#f59e0b",
     logoUrl: "",
+    logoSize: 112,
     formDefaults: {
       primaryColor: "#0f766e",
       backgroundColor: "#f0fdfa",

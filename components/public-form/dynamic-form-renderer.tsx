@@ -26,6 +26,13 @@ type Phase = { kind: "form" } | { kind: "success"; submissionNumber: string | nu
 /** Default title banner colour (navy), used when a form has none set. */
 export const DEFAULT_HEADER_COLOR = "#1e2749";
 
+/** CSS variables for the header logo: desktop height, ~70% on phones, width capped at 3.75× height. */
+function logoSizeVars(size: number): React.CSSProperties {
+  const h = Math.min(200, Math.max(40, Math.round(size)));
+  const sm = Math.max(36, Math.round(h * 0.7));
+  return { "--logo-h": `${h}px`, "--logo-h-sm": `${sm}px`, "--logo-w": `${Math.round(h * 3.75)}px`, "--logo-w-sm": `${Math.round(sm * 3.75)}px` } as React.CSSProperties;
+}
+
 const FONT_CLASS: Record<string, string> = {
   inter: "font-sans",
   serif: "font-serif",
@@ -46,6 +53,7 @@ export function DynamicFormRenderer({
   closedMessage,
   orgName,
   logoUrl,
+  logoSize = 112,
 }: {
   form: RendererForm;
   mode?: "public" | "preview";
@@ -54,6 +62,8 @@ export function DynamicFormRenderer({
   closedMessage?: string | null;
   orgName?: string;
   logoUrl?: string | null;
+  /** Desktop logo height in px (Settings → Branding); phones get ~70%. */
+  logoSize?: number;
 }) {
   const appearance = form.settings.appearance ?? {};
   const behavior = form.settings.behavior ?? {};
@@ -182,18 +192,20 @@ export function DynamicFormRenderer({
           <div className="flex flex-col items-center px-4 py-6 text-center font-heading sm:px-10 sm:py-9" style={{ background: headerColor, color: readableTextColor(headerColor) }}>
             {/* Logo sits inside the title box, shown as-is (no background). */}
             {logoUrl && !logoFailed ? (
-              <span className="mb-4 inline-flex">
+              <span className="mb-4 inline-flex" style={logoSizeVars(logoSize)}>
                 {/* eslint-disable-next-line @next/next/no-img-element -- admin-configured logo */}
                 <img
                   ref={logoRef}
                   src={logoSrc(logoUrl) ?? undefined}
                   alt={orgName ?? "Logo"}
-                  className="h-20 w-auto max-w-[280px] object-contain sm:h-28 sm:max-w-[420px]"
+                  className="h-[var(--logo-h-sm)] w-auto max-w-[min(100%,var(--logo-w-sm))] object-contain sm:h-[var(--logo-h)] sm:max-w-[var(--logo-w)]"
                   onError={() => setLogoFailed(true)}
                 />
               </span>
             ) : (
-              <LogoMark tile={false} className="mb-4 size-20 sm:size-28" />
+              <span className="mb-4 inline-flex" style={logoSizeVars(logoSize)}>
+                <LogoMark tile={false} className="size-[var(--logo-h-sm)] sm:size-[var(--logo-h)]" />
+              </span>
             )}
             <h1 className="text-[22px] leading-tight font-bold text-balance sm:text-[26px]">{form.name}</h1>
             {form.description && (
