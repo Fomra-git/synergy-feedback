@@ -180,9 +180,9 @@ export function DynamicFormRenderer({
       <div ref={topRef} className="mx-auto w-full max-w-2xl lg:max-w-4xl">
         <main className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_40px_-12px_rgba(15,23,42,0.15)]">
           <div className="flex flex-col items-center px-4 py-6 text-center font-heading sm:px-10 sm:py-9" style={{ background: headerColor, color: readableTextColor(headerColor) }}>
-            {/* Logo sits inside the title box; uploaded logos get a white card so dark artwork stays visible. */}
+            {/* Logo sits inside the title box, shown as-is (no background). */}
             {logoUrl && !logoFailed ? (
-              <span className="mb-4 inline-flex rounded-xl bg-white px-4 py-2.5 shadow-sm">
+              <span className="mb-4 inline-flex">
                 {/* eslint-disable-next-line @next/next/no-img-element -- admin-configured logo */}
                 <img
                   ref={logoRef}
@@ -193,7 +193,7 @@ export function DynamicFormRenderer({
                 />
               </span>
             ) : (
-              <LogoMark className="mb-4 size-14 shadow-sm sm:size-16" />
+              <LogoMark tile={false} className="mb-4 size-14 sm:size-16" />
             )}
             <h1 className="text-[22px] leading-tight font-bold text-balance sm:text-[26px]">{form.name}</h1>
             {form.description && (
