@@ -25,30 +25,34 @@ export class AuthorizationError extends Error {
 }
 
 /**
- * Validates the session with Supabase Auth (getUser hits the auth server) and
- * loads the profile. Any active user (super admin, admin or staff) gets a
- * session; what they may do is decided by `can()` and, in the database, RLS.
+ * Validates the session token and loads the profile in one query. getClaims()
+ * verifies the JWT signature (locally when the project uses asymmetric JWT
+ * signing keys, otherwise via the auth server). Deactivated users are still
+ * refused here because the profile's is_active flag is checked on every request.
+ * Any active user (super admin, admin or staff) gets a session; what they may
+ * do is decided by `can()` and, in the database, RLS.
  */
 export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const { data: auth } = await supabase.auth.getClaims();
+  const userId = typeof auth?.claims?.sub === "string" ? auth.claims.sub : null;
+  if (!userId) return null;
 
-  const [{ data: profile }, { data: scope }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle<ProfileRow>(),
-    supabase.from("profile_branches").select("branch_id").eq("profile_id", user.id),
-  ]);
-  if (!profile || !profile.is_active) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("*, profile_branches(branch_id)")
+    .eq("id", userId)
+    .maybeSingle<ProfileRow & { profile_branches: { branch_id: string }[] | null }>();
+  if (!data || !data.is_active) return null;
+  const { profile_branches: scope, ...profile } = data;
   const permissions = profile.permissions ?? [];
   return {
-    userId: user.id,
-    email: user.email ?? profile.email,
+    userId,
+    email: (typeof auth?.claims?.email === "string" && auth.claims.email) || profile.email,
     profile,
     isSuperAdmin: profile.role === "super_admin",
     isAdmin: profile.role === "admin" || profile.role === "super_admin",
-    branchIds: profile.role === "super_admin" ? [] : (scope ?? []).map((r) => r.branch_id as string),
+    branchIds: profile.role === "super_admin" ? [] : (scope ?? []).map((r) => r.branch_id),
     can: (permission) => roleHasPermission(profile.role, permissions, permission),
   };
 });

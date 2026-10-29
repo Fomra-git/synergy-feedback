@@ -21,20 +21,16 @@ export interface PublishedForm {
  */
 export const getPublishedForm = cache(async (slug: string): Promise<PublishedForm | null> => {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length > 80) return null;
-  const db = createPublicClient();
-  const { data: form } = await db
+  // One round trip: the form with its fields embedded (ordered by position).
+  const { data } = await createPublicClient()
     .from("forms")
-    .select("id, slug, name, description, settings")
+    .select("id, slug, name, description, settings, form_fields(*)")
     .eq("slug", slug)
     .eq("status", "published")
-    .maybeSingle<{ id: string; slug: string; name: string; description: string | null; settings: FormPublicSettings }>();
-  if (!form) return null;
-  const { data: fields } = await db
-    .from("form_fields")
-    .select("*")
-    .eq("form_id", form.id)
-    .order("position")
-    .returns<FormFieldRow[]>();
+    .order("position", { referencedTable: "form_fields" })
+    .maybeSingle<{ id: string; slug: string; name: string; description: string | null; settings: FormPublicSettings; form_fields: FormFieldRow[] | null }>();
+  if (!data) return null;
+  const { form_fields: fields, ...form } = data;
   return { ...form, settings: form.settings ?? {}, fields: (fields ?? []).map(rowToField) };
 });
 

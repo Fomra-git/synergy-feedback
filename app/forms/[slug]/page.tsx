@@ -12,9 +12,8 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(props: PageProps<"/forms/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
-  const form = await getPublishedForm(slug);
+  const [form, settings] = await Promise.all([getPublishedForm(slug), getAppSettings()]);
   if (!form) return { title: "Form not found", robots: { index: false } };
-  const settings = await getAppSettings();
   const title = form.settings.seo?.title || `${form.name} — ${settings.organization.name}`;
   const description = form.settings.seo?.description || form.description || `Share your feedback with ${settings.organization.name}.`;
   return {
@@ -35,13 +34,17 @@ function closedMessageFor(sub: FormSubmissionSettings): string | null {
 export default async function PublicFormPage(props: PageProps<"/forms/[slug]">) {
   const { slug } = await props.params;
   const sp = await props.searchParams;
-  const form = await getPublishedForm(slug);
-  if (!form) notFound();
-
-  const [settings, { data: priv }] = await Promise.all([
+  // All three lookups run in parallel (form_settings is matched by the form's slug).
+  const [form, settings, { data: priv }] = await Promise.all([
+    getPublishedForm(slug),
     getAppSettings(),
-    createAdminClient().from("form_settings").select("submission").eq("form_id", form.id).maybeSingle<{ submission: FormSubmissionSettings }>(),
+    createAdminClient()
+      .from("form_settings")
+      .select("submission, forms!inner(slug)")
+      .eq("forms.slug", slug)
+      .maybeSingle<{ submission: FormSubmissionSettings }>(),
   ]);
+  if (!form) notFound();
   const closed = closedMessageFor(priv?.submission ?? {});
 
   const prefill: Record<string, string | undefined> = {};

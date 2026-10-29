@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -10,6 +10,7 @@ import { logAudit } from "@/lib/audit";
 import { logError } from "@/lib/logger";
 import { appSettingsSchema, type AppSettings } from "@/schemas/settings";
 import { contentMatchesMime } from "@/lib/security/files";
+import { APP_SETTINGS_TAG } from "@/services/settings";
 
 export async function saveAppSettingsAction(input: AppSettings): Promise<ActionResult> {
   return runAction(
@@ -25,6 +26,7 @@ export async function saveAppSettingsAction(input: AppSettings): Promise<ActionR
       const supabase = await createClient();
       check(await supabase.from("app_settings").update({ ...data, updated_by: session.userId }).eq("id", 1));
       await logAudit({ userId: session.userId, action: "settings.updated", entityType: "app_settings", entityId: "1" });
+      updateTag(APP_SETTINGS_TAG);
       revalidatePath("/admin/settings");
       return undefined;
     },

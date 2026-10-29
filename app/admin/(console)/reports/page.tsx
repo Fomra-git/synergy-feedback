@@ -45,11 +45,14 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
   const thisMonth = today.slice(0, 7);
   // Daily report for today by default; switch to Monthly with ?view=month.
   const period = parsePeriod(sp, today);
-  const branches = await listBranchOptions();
-  const branchId = typeof sp.branch === "string" && branches.some((b) => b.id === sp.branch) ? sp.branch : null;
+  // Load the branch list and the report together; the requested branch is
+  // validated against the list afterwards (re-queried for all branches if unknown).
+  const requested = typeof sp.branch === "string" && /^[0-9a-f-]{36}$/i.test(sp.branch) ? sp.branch : null;
+  const client = await createClient();
+  const [branches, firstData] = await Promise.all([listBranchOptions(), loadRatingData(client, period, tz, requested)]);
+  const branchId = requested && branches.some((b) => b.id === requested) ? requested : null;
   const branchName = branchId ? branches.find((b) => b.id === branchId)!.name : "All branches";
-
-  const data = await loadRatingData(await createClient(), period, tz, branchId);
+  const data = branchId === requested ? firstData : await loadRatingData(client, period, tz, null);
   const report = reportFor(data);
   const months = Array.from({ length: 12 }, (_, i) => i).reduce<string[]>((acc) => [...acc, acc.length ? previousMonth(acc[acc.length - 1]!) : thisMonth], []);
   const csvHref = `/api/admin/reports/export?${periodQuery(period, branchId)}`;
