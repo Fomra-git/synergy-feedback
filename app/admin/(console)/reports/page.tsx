@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, ClipboardCheck, Download, FileBarChart2, MessageSquareText, Star, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, FileBarChart2, Star, Users } from "lucide-react";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { Button } from "@/components/ui/button";
@@ -166,7 +166,7 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
         </Card>
       ) : (
         <>
-          <section aria-label="Summary" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <section aria-label="Summary" className="grid grid-cols-2 gap-3 sm:gap-4">
             <Tile
               label="Average rating"
               value={
@@ -177,9 +177,7 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
               }
               icon={Star}
             />
-            <Tile label="Total ratings" value={formatNumber(report.ratings)} icon={ClipboardCheck} hint="Answers to rating questions" />
             <Tile label="Customers" value={formatNumber(report.customers)} icon={Users} hint="Submissions with ratings" />
-            <Tile label="Rating questions" value={formatNumber(report.questions.length)} icon={MessageSquareText} />
           </section>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
