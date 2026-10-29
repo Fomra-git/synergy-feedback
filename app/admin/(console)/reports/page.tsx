@@ -222,8 +222,8 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
                         Rating {m.score}
                       </TableHead>
                     ))}
-                    <TableHead className="text-right">Customers</TableHead>
-                    <TableHead className="text-right">Average</TableHead>
+                    <TableHead className="border-l text-right">Customers</TableHead>
+                    <TableHead className="border-l text-right">Average</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -238,8 +238,8 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
                           {formatNumber(q.marks.find((x) => x.score === m.score)?.count ?? 0)}
                         </TableCell>
                       ))}
-                      <TableCell className="text-right tabular-nums">{formatNumber(q.customers)}</TableCell>
-                      <TableCell className="text-right font-semibold tabular-nums">{formatAverage(q.average)}</TableCell>
+                      <TableCell className="border-l text-right tabular-nums">{formatNumber(q.customers)}</TableCell>
+                      <TableCell className="border-l text-right font-semibold tabular-nums">{formatAverage(q.average)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/40">
@@ -250,60 +250,13 @@ export default async function ReportsPage(props: PageProps<"/admin/reports">) {
                         {formatNumber(m.count)}
                       </TableCell>
                     ))}
-                    <TableCell className="text-right font-semibold tabular-nums">{formatNumber(report.customers)}</TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums">{formatAverage(report.average)}</TableCell>
+                    <TableCell className="border-l text-right font-semibold tabular-nums">{formatNumber(report.customers)}</TableCell>
+                    <TableCell className="border-l text-right font-semibold tabular-nums">{formatAverage(report.average)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
-
-          {report.branches.length > 1 && (
-            <Card className="mt-6 overflow-hidden">
-              <CardHeader>
-                <CardTitle>Branch-wise comparison</CardTitle>
-                <CardDescription>Average rating per question for each branch. Pick a branch above for its full report.</CardDescription>
-              </CardHeader>
-              <CardContent className="px-0 sm:px-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Branch</TableHead>
-                      {report.questions.map((q) => (
-                        <TableHead key={q.key} className="max-w-[160px] text-right whitespace-normal">
-                          {q.question}
-                        </TableHead>
-                      ))}
-                      <TableHead className="text-right">Customers</TableHead>
-                      <TableHead className="text-right">Average</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {report.branches.map((b) => (
-                      <TableRow key={b.id ?? "none"}>
-                        <TableCell className="font-medium">
-                          {b.id ? (
-                            <a className="hover:text-primary hover:underline" href={`/admin/reports?${periodQuery(period, b.id)}`}>
-                              {b.name}
-                            </a>
-                          ) : (
-                            b.name
-                          )}
-                        </TableCell>
-                        {report.questions.map((q) => (
-                          <TableCell key={q.key} className="text-right tabular-nums">
-                            {formatAverage(b.questionAverages[q.key] ?? null)}
-                          </TableCell>
-                        ))}
-                        <TableCell className="text-right tabular-nums">{formatNumber(b.customers)}</TableCell>
-                        <TableCell className="text-right font-semibold tabular-nums">{formatAverage(b.average)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
         </>
       )}
     </>
