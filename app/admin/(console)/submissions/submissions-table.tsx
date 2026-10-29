@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SyncStatusBadge } from "@/components/admin/status-badges";
 import { formatDateTime } from "@/lib/forms/format";
+import { respondentName, type NameAnswer } from "@/lib/forms/respondent-name";
 import type { SyncStatus } from "@/types/db";
 import { setSubmissionsArchivedAction } from "./actions";
 
@@ -19,8 +20,13 @@ export interface SubmissionListRow {
   submitted_at: string;
   status: "active" | "archived";
   forms: { name: string } | null;
-  branches: { name: string } | null;
+  submission_answers: NameAnswer[] | null;
   google_sheet_sync_logs: { status: SyncStatus; error_message: string | null } | { status: SyncStatus; error_message: string | null }[] | null;
+}
+
+/** The respondent's name, or the submission number when the form has no name field. */
+function titleOf(r: SubmissionListRow) {
+  return respondentName(r.submission_answers) ?? r.submission_number;
 }
 
 function syncOf(r: SubmissionListRow) {
@@ -65,9 +71,8 @@ export function SubmissionsTable({ rows, timeZone, archivedView, canManage }: { 
                   onCheckedChange={(v) => setSelected(v ? new Set(rows.map((r) => r.id)) : new Set())}
                 />
               </TableHead>
-              <TableHead>Submission ID</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>Form</TableHead>
-              <TableHead>Branch</TableHead>
               <TableHead>Submitted</TableHead>
               <TableHead>Google Sheet</TableHead>
               <TableHead><span className="sr-only">View</span></TableHead>
@@ -80,7 +85,7 @@ export function SubmissionsTable({ rows, timeZone, archivedView, canManage }: { 
                 <TableRow key={r.id} data-state={selected.has(r.id) ? "selected" : undefined}>
                   <TableCell>
                     <Checkbox
-                      aria-label={`Select ${r.submission_number}`}
+                      aria-label={`Select ${titleOf(r)}`}
                       checked={selected.has(r.id)}
                       onCheckedChange={(v) =>
                         setSelected((s) => {
@@ -93,18 +98,17 @@ export function SubmissionsTable({ rows, timeZone, archivedView, canManage }: { 
                     />
                   </TableCell>
                   <TableCell>
-                    <Link href={`/admin/submissions/${r.id}`} className="font-mono text-[13px] font-medium hover:text-primary hover:underline">
-                      {r.submission_number}
+                    <Link href={`/admin/submissions/${r.id}`} title={r.submission_number} className="font-medium hover:text-primary hover:underline">
+                      {titleOf(r)}
                     </Link>
                   </TableCell>
                   <TableCell>{r.forms?.name ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground">{r.branches?.name ?? "—"}</TableCell>
                   <TableCell className="whitespace-nowrap text-muted-foreground">{formatDateTime(r.submitted_at, timeZone)}</TableCell>
                   <TableCell title={sync?.error_message ?? undefined}>
                     <SyncStatusBadge status={sync?.status} />
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button asChild variant="ghost" size="icon-sm" aria-label={`View ${r.submission_number}`}>
+                    <Button asChild variant="ghost" size="icon-sm" aria-label={`View ${titleOf(r)}`}>
                       <Link href={`/admin/submissions/${r.id}`}><ChevronRight /></Link>
                     </Button>
                   </TableCell>
@@ -119,11 +123,9 @@ export function SubmissionsTable({ rows, timeZone, archivedView, canManage }: { 
           <li key={r.id}>
             <Link href={`/admin/submissions/${r.id}`} className="flex items-center gap-3 p-4">
               <div className="min-w-0 flex-1">
-                <p className="font-mono text-sm font-medium">{r.submission_number}</p>
+                <p className="truncate text-sm font-medium">{titleOf(r)}</p>
                 <p className="truncate text-sm">{r.forms?.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {r.branches?.name ?? "No branch"} · {formatDateTime(r.submitted_at, timeZone)}
-                </p>
+                <p className="text-xs text-muted-foreground">{formatDateTime(r.submitted_at, timeZone)}</p>
               </div>
               <SyncStatusBadge status={syncOf(r)?.status} />
             </Link>

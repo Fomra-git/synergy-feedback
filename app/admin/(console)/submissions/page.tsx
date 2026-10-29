@@ -29,7 +29,10 @@ export default async function SubmissionsPage(props: PageProps<"/admin/submissio
 
   let query = supabase
     .from("form_submissions")
-    .select(`id, submission_number, submitted_at, status, forms(name), branches(name), ${syncEmbed(filters)}`, { count: "estimated" })
+    .select(`id, submission_number, submitted_at, status, forms(name), submission_answers(field_type, field_label, value), ${syncEmbed(filters)}`, { count: "estimated" })
+    // only the text answers that could hold the respondent's name
+    .eq("submission_answers.field_type", "short_text")
+    .ilike("submission_answers.field_label", "%name%")
     .order("submitted_at", { ascending: false })
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   query = applySubmissionFilters(query, filters, tz);
